@@ -124,6 +124,37 @@ passop-mongo/
 - `POST /` - Save a new password
 - `DELETE /` - Delete a password by ID
 
+## Deployment
+
+### Netlify
+
+To deploy this website on Netlify:
+
+1. **Push to a Git Repository**:
+   - Create a new repository on GitHub, GitLab, or Bitbucket.
+   - Push the code to the repository:
+     ```bash
+     git remote add origin <repository-url>
+     git branch -M main
+     git push -u origin main
+     ```
+
+2. **Connect to Netlify**:
+   - Go to [Netlify](https://www.netlify.com/).
+   - Sign in or create an account.
+   - Click "New site from Git".
+   - Connect your Git provider (GitHub, GitLab, or Bitbucket).
+   - Select the repository you just created.
+
+3. **Configure Build Settings**:
+   - Netlify will automatically detect the build settings from `netlify.toml`.
+   - The build command is `npm run build`.
+   - The publish directory is `dist`.
+
+4. **Deploy**:
+   - Click "Deploy site".
+   - Netlify will build and deploy your website.
+
 ## Contributing
 
 1. Fork the repository
