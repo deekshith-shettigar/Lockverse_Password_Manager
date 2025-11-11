@@ -22,3 +22,8 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Environment variable files
+# Ignore root .env and backend-specific .env
+.env
+backend/.env
