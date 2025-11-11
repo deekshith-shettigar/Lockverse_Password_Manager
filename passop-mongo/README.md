@@ -1,118 +1,112 @@
-# LockVerse - Password Manager
+# 🔐 LockVerse
 
-LockVerse is a secure password manager application that allows users to store, manage, and organize their passwords in one convenient location. Built with modern web technologies, it provides a user-friendly interface with robust functionality.
+**Your Simple and Secure Password Manager**
 
-## Features
+LockVerse is a full-stack password management application that helps you securely store and manage all your login credentials in one place. Built with modern web technologies, it provides a clean, intuitive interface for organizing your passwords across multiple websites and applications.
 
-- **Password Storage**: Securely store website URLs, usernames, and passwords
-- **Password Visibility**: Toggle password visibility with a click
-- **Copy to Clipboard**: Easily copy site URLs, usernames, or passwords with one click
-- **Edit/Delete Functionality**: Modify or remove existing password entries
-- **Responsive Design**: Works on desktop and mobile devices
-- **Toast Notifications**: User-friendly feedback for all actions
-- **MongoDB Integration**: Backend data persistence with MongoDB
+## ✨ Features
 
-## Technology Stack
+- 🔒 **Secure Password Storage** - Store website URLs, usernames, and passwords safely in MongoDB
+- 🔍 **Smart Search** - Quickly find your passwords with real-time search functionality
+- 👁️ **Show/Hide Passwords** - Toggle password visibility for easy viewing
+- 📋 **One-Click Copy** - Copy credentials to clipboard with a single click
+- ✏️ **Edit & Delete** - Manage your saved passwords with ease
+- 🎨 **Responsive Design** - Works seamlessly on desktop, tablet, and mobile devices
+- 🔐 **User Authentication** - Secure login and signup system
+- 🔑 **Password Recovery** - Forgot password functionality
+- 🌐 **Landing Page** - Professional landing page with About and Contact sections
+- 🎯 **User-Scoped Data** - Each user sees only their own passwords
+
+## 🛠️ Tech Stack
 
 ### Frontend
-- **React.js**: JavaScript library for building user interfaces
-- **Tailwind CSS**: Utility-first CSS framework for styling
-- **React Toastify**: Notification library for React
-- **UUID**: Library for generating unique identifiers
-- **Lordicon**: Animated icon library
+- **React** - UI library for building interactive user interfaces
+- **Vite** - Fast build tool and development server
+- **Tailwind CSS** - Utility-first CSS framework for styling
+- **React Toastify** - Beautiful toast notifications
+- **UUID** - Generate unique identifiers for passwords
 
 ### Backend
-- **Node.js**: JavaScript runtime environment
-- **Express.js**: Web application framework
-- **MongoDB**: NoSQL database for data persistence
-- **Mongoose**: MongoDB object modeling tool
+- **Node.js** - JavaScript runtime
+- **Express.js** - Web application framework
+- **MongoDB** - NoSQL database for data storage
+- **CORS** - Cross-Origin Resource Sharing middleware
 
-## Installation
+## 📋 Prerequisites
 
-1. **Clone the repository**:
-   ```bash
-   git clone <repository-url>
-   cd passop-mongo
-   ```
+Before running this project, make sure you have the following installed:
 
-2. **Install frontend dependencies**:
-   ```bash
-   npm install
-   ```
+- [Node.js](https://nodejs.org/) (v14 or higher)
+- [MongoDB](https://www.mongodb.com/) (local or Atlas)
+- npm or yarn package manager
 
-3. **Install backend dependencies**:
-   ```bash
-   cd backend
-   npm install
-   ```
 
-4. **Set up MongoDB**:
-   - Create a MongoDB database
-   - Update the connection string in `backend/server.js` if needed
-
-## Usage
-
-1. **Start the backend server**:
-   ```bash
-   cd backend
-   node server.js
-   ```
-   The server will run on `http://localhost:3000`
-
-2. **Start the frontend development server**:
-   ```bash
-   npm run dev
-   ```
-   The application will be available at `http://localhost:5173`
-
-3. **Using the application**:
-   - Enter website URL, username, and password in the input fields
-   - Click "Save Password" to store your credentials
-   - View saved passwords in the table below the form
-   - Use the icons to copy, edit, or delete password entries
-
-## Folder Structure
+## 📂 Project Structure
 
 ```
 passop-mongo/
 ├── backend/
-│   └── server.js        # Backend Express server
+│   ├── server.js           # Express server and API routes
+│   ├── package.json        # Backend dependencies
+│   └── .env               # Environment variables
 ├── src/
 │   ├── components/
-│   │   ├── Manager.jsx  # Main password management component
-│   │   ├── Navbar.jsx   # Navigation bar component
-│   │   └── Footer.jsx   # Footer component
-│   └── App.jsx          # Main application component
+│   │   ├── About.jsx      # About section
+│   │   ├── Contact.jsx    # Contact section
+│   │   ├── Footer.jsx     # Footer component
+│   │   ├── ForgotPassword.jsx
+│   │   ├── Home.jsx       # Home/Hero section
+│   │   ├── LandingPage.jsx
+│   │   ├── Login.jsx      # Login form
+│   │   ├── Manager.jsx    # Password manager UI
+│   │   ├── Navbar.jsx     # Navigation bar
+│   │   └── Signup.jsx     # Signup form
+│   ├── App.jsx            # Main app component
+│   ├── main.jsx           # React entry point
+│   ├── App.css
+│   └── index.css
 ├── public/
-│   └── icons/           # Icon assets
-├── README.md            # This file
-└── package.json         # Project dependencies and scripts
+│   └── icons/             # Eye icons and other assets
+├── package.json
+├── vite.config.js
+├── tailwind.config.js
+└── README.md
 ```
 
-## API Endpoints
+## 🔌 API Endpoints
 
-The backend server provides the following RESTful API endpoints:
+### Authentication
+- `POST /signup` - Create a new user account
+- `POST /login` - Login with username/email and password
+- `POST /forgot-password` - Reset password
 
-- **GET /**: Retrieve all saved passwords
-- **POST /**: Save a new password entry
-- **DELETE /**: Delete a password entry by ID
+### Password Management
+- `GET /` - Get all passwords for the authenticated user
+- `POST /` - Save a new password
+- `DELETE /` - Delete a password by ID
 
-## Contributing
+## 💻 Usage
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+1. **Sign Up**: Create a new account with username, email, and password
+2. **Login**: Access your password vault
+3. **Add Password**: Enter website URL, username, and password, then click "Save Password"
+4. **Search**: Use the search bar in the navbar to filter passwords by username or site
+5. **Copy**: Click the copy icon to copy credentials to clipboard
+6. **Edit**: Click the edit icon to modify existing passwords
+7. **Delete**: Click the delete icon to remove passwords (with confirmation)
+8. **Toggle Visibility**: Click the eye icon to show/hide passwords in the input field
 
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
+## 🔒 Security Features
 
-## License
+- Password input fields with show/hide toggle
+- User-specific data isolation
+- Confirmation dialog before deleting passwords
+- Secure MongoDB storage
+- CORS protection
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+## 👨‍💻 Author
 
-## Acknowledgments
+**Deekshith Shettigar**
 
-- Thanks to [Lordicon](https://lordicon.com/) for the animated icons
-- Built with [React](https://reactjs.org/) and [Tailwind CSS](https://tailwindcss.com/)
-- Backend powered by [Node.js](https://nodejs.org/), [Express](https://expressjs.com/), and [MongoDB](https://www.mongodb.com/)
+- GitHub: [@deekshith-shettigar](https://github.com/deekshith-shettigar)
+
