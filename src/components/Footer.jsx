@@ -2,12 +2,12 @@ import React from 'react'
 
 const Footer = () => {
     return (
-        <div className='bg-slate-800 text-white flex flex-col justify-center items-center w-full'>
+        <div className='bg-gradient-to-r from-slate-700 to-slate-700 backdrop-blur-md text-white flex flex-col justify-center items-center w-full py-4 shadow-lg'>
             <div className="logo font-bold text-white text-2xl">
-                <span>Lock</span><span className='text-orange-500'>Verse</span>
+                <span className='text-black'>Lock</span><span className='text-orange-500'>Verse</span>
             </div>
-            <div className='flex justify-center items-center'>
-                Created with <img className='w-7 m-2' src="icons/heart.png" alt="" /> by Deekshith
+            <div className='flex justify-center items-center mt-2'>
+                Copyright &copy; Deekshith Shettigar - All rights reserved
             </div>
 
         </div>
