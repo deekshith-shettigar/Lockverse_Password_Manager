@@ -116,28 +116,3 @@ passop-mongo/
 ## 👨‍💻 Author
 
 **Deekshith Shettigar**
-## 🚀 Deployment
-
-This project is configured for deployment on Vercel with serverless functions.
-
-### Quick Deploy to Vercel
-
-1. Push your code to GitHub/GitLab/Bitbucket
-2. Import the project in [Vercel Dashboard](https://vercel.com/new)
-3. Add environment variables:
-   - `MONGO_URI` - Your MongoDB connection string
-   - `DB_NAME` - Your database name
-4. Deploy!
-
-For detailed deployment instructions, see [DEPLOYMENT.md](DEPLOYMENT.md)
-
-### Local Development
-
-For local development, you can still use the Express backend in the `backend/` folder.
-
-## 📝 License
-
-This project is open source and available for learning purposes.
-
-- GitHub: [@deekshith-shettigar](https://github.com/deekshith-shettigar)
-
