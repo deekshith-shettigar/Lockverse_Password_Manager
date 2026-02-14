@@ -24,6 +24,8 @@ dist-ssr
 *.sw?
 
 # Environment variable files
-# Ignore root .env and backend-specific .env
-passop-mongo/.env
-passop-mongo/backend/.env
+.env
+.env.*
+!.env.example
+backend/.env
+backend/.env.*
