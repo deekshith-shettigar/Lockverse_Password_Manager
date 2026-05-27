@@ -26,6 +26,15 @@ function decryptVaultPassword(stored) {
     return decrypted.toString('utf8')
 }
 
+// ─── API Key middleware ────────────────────────────────────────────────────────
+const checkApiKey = (req, res, next) => {
+    const apiKey = req.headers['x-api-key']
+    if (apiKey !== process.env.API_KEY) {
+        return res.status(403).json({ error: 'Forbidden' })
+    }
+    next()
+}
+
 const url = process.env.MONGO_URI;
 const client = new MongoClient(url);
 client.connect();
@@ -37,7 +46,8 @@ const port = 3000
 app.use(bodyparser.json())
 app.use(cors())
 
-app.get('/', async (req, res) => {
+// Get all the passwords (protected by API key)
+app.get('/', checkApiKey, async (req, res) => {
     const db = client.db(dbName);
     const collection = db.collection('passwords');
     const findResult = await collection.find({}).toArray();
@@ -51,7 +61,8 @@ app.get('/', async (req, res) => {
     res.json(decrypted)
 })
 
-app.post('/', async (req, res) => {
+// Save a password (protected by API key)
+app.post('/', checkApiKey, async (req, res) => {
     const { password, ...rest } = req.body
     const encryptedPassword = encryptVaultPassword(password)
     const db = client.db(dbName);
@@ -60,7 +71,8 @@ app.post('/', async (req, res) => {
     res.send({ success: true, result: findResult })
 })
 
-app.delete('/', async (req, res) => {
+// Delete a password (protected by API key)
+app.delete('/', checkApiKey, async (req, res) => {
     const { id } = req.body;
     const db = client.db(dbName);
     const collection = db.collection('passwords');
@@ -68,6 +80,7 @@ app.delete('/', async (req, res) => {
     res.send({ success: true, result });
 });
 
+// Login
 app.post('/login', async (req, res) => {
     try {
         const { name, email, password } = req.body || {}
@@ -97,6 +110,7 @@ app.post('/login', async (req, res) => {
     }
 })
 
+// Signup
 app.post('/signup', async (req, res) => {
     try {
         const { name, email, password } = req.body || {}
@@ -120,6 +134,7 @@ app.post('/signup', async (req, res) => {
     }
 })
 
+// Forgot password
 app.post('/forgot-password', async (req, res) => {
     try {
         const { email, password } = req.body || {}

@@ -5,6 +5,7 @@ import { v4 as uuidv4 } from 'uuid';
 import 'react-toastify/dist/ReactToastify.css';
 
 const API = 'https://lockverse-password-manager.onrender.com'
+const API_KEY = import.meta.env.VITE_API_KEY
 
 const Manager = ({ currentUser, searchQuery }) => {
     const ref = useRef()
@@ -14,7 +15,9 @@ const Manager = ({ currentUser, searchQuery }) => {
     const [filteredPasswords, setFilteredPasswords] = useState([])
 
     const getPasswords = async () => {
-        let req = await fetch(`${API}/`)
+        let req = await fetch(`${API}/`, {
+            headers: { 'x-api-key': API_KEY }
+        })
         let passwords = await req.json()
         const email = (currentUser?.email || '').toLowerCase()
         const filtered = email ? passwords.filter(p => (p.userEmail || '').toLowerCase() === email) : []
@@ -69,7 +72,7 @@ const Manager = ({ currentUser, searchQuery }) => {
             if (form.id) {
                 await fetch(`${API}/`, {
                     method: "DELETE",
-                    headers: { "Content-Type": "application/json" },
+                    headers: { "Content-Type": "application/json", 'x-api-key': API_KEY },
                     body: JSON.stringify({ id: form.id })
                 });
             }
@@ -79,7 +82,7 @@ const Manager = ({ currentUser, searchQuery }) => {
 
             await fetch(`${API}/`, {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
+                headers: { "Content-Type": "application/json", 'x-api-key': API_KEY },
                 body: JSON.stringify({ ...form, id: newId, userEmail: currentUser?.email || '' })
             });
 
@@ -93,7 +96,7 @@ const Manager = ({ currentUser, searchQuery }) => {
             setPasswordArray(passwordArray.filter(item => item.id !== id));
             await fetch(`${API}/`, {
                 method: "DELETE",
-                headers: { "Content-Type": "application/json" },
+                headers: { "Content-Type": "application/json", 'x-api-key': API_KEY },
                 body: JSON.stringify({ id })
             });
             toast.info('Password Deleted!', { autoClose: 2000 });
