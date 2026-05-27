@@ -1,39 +1,23 @@
-# Logs
-logs
-*.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-lerna-debug.log*
+# Dependencies
+node_modules/
+dist/
 
-node_modules
-dist
-dist-ssr
-*.local
-
-# Editor directories and files
-.vscode/*
-!.vscode/extensions.json
-.idea
-.DS_Store
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
-
-# Environment variable files
-<<<<<<< HEAD
-# Ignore root .env and backend-specific .env
-passop-mongo/.env
-passop-mongo/backend/.env
-=======
+# Environment variables
 .env
 .env.*
 !.env.example
 backend/.env
 backend/.env.*
-api/.env
-api/.env.*
->>>>>>> cb4c07ea9b04b5ca64902309f25ed692fb1d9cf2
+
+# Logs
+logs
+*.log
+
+# Editor
+.vscode/
+.idea/
+.DS_Store
+
+# Build
+dist/
+build/
