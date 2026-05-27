@@ -2,6 +2,8 @@ import React, { useRef, useState } from 'react'
 import { ToastContainer, toast, Bounce } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 
+const API = 'https://lockverse-password-manager.onrender.com'
+
 function Signup({ onSuccess, onSwitchToLogin }) {
     const passwordRef = useRef(null)
     const confirmRef = useRef(null)
@@ -57,7 +59,7 @@ function Signup({ onSuccess, onSwitchToLogin }) {
             const emailLower = (form.email || '').trim().toLowerCase()
             const newUser = { name: form.name, email: emailLower, password: form.password }
 
-            const res = await fetch('http://localhost:3000/signup', {
+            const res = await fetch(`${API}/signup`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(newUser)

@@ -2,6 +2,8 @@ import React, { useRef, useState } from 'react'
 import { ToastContainer, toast, Bounce } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 
+const API = 'https://lockverse-password-manager.onrender.com'
+
 function Login({ onSuccess, onSwitchToSignup, onSwitchToForgot }) {
     const passwordRef = useRef(null)
     const eyeImgRef = useRef(null)
@@ -48,7 +50,7 @@ function Login({ onSuccess, onSwitchToSignup, onSwitchToForgot }) {
         if (!validate()) return
         try {
             setIsSubmitting(true)
-            const response = await fetch('http://localhost:3000/login', {
+            const response = await fetch(`${API}/login`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ name: form.name, email: form.email, password: form.password })

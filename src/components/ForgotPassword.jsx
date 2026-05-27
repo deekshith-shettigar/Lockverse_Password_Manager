@@ -2,6 +2,8 @@ import React, { useRef, useState } from 'react'
 import { ToastContainer, toast, Bounce } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 
+const API = 'https://lockverse-password-manager.onrender.com'
+
 function ForgotPassword({ onSwitchToLogin }) {
     const [form, setForm] = useState({ email: '', password: '', confirmPassword: '' })
     const [isSubmitting, setIsSubmitting] = useState(false)
@@ -60,7 +62,7 @@ function ForgotPassword({ onSwitchToLogin }) {
         if (!validate()) return
         try {
             setIsSubmitting(true)
-            const response = await fetch('http://localhost:3000/forgot-password', {
+            const response = await fetch(`${API}/forgot-password`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email: form.email, password: form.password })

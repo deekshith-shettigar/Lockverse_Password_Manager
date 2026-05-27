@@ -3,7 +3,8 @@ import { useRef, useState, useEffect } from 'react';
 import { ToastContainer, toast, Bounce } from 'react-toastify';
 import { v4 as uuidv4 } from 'uuid';
 import 'react-toastify/dist/ReactToastify.css';
-import API_BASE_URL from '../config';
+
+const API = 'https://lockverse-password-manager.onrender.com'
 
 const Manager = ({ currentUser, searchQuery }) => {
     const ref = useRef()
@@ -13,13 +14,12 @@ const Manager = ({ currentUser, searchQuery }) => {
     const [filteredPasswords, setFilteredPasswords] = useState([])
 
     const getPasswords = async () => {
-        let req = await fetch(`${API_BASE_URL}/api`)
+        let req = await fetch(`${API}/`)
         let passwords = await req.json()
         const email = (currentUser?.email || '').toLowerCase()
         const filtered = email ? passwords.filter(p => (p.userEmail || '').toLowerCase() === email) : []
         setPasswordArray(filtered)
     }
-
 
     useEffect(() => {
         getPasswords()
@@ -37,9 +37,6 @@ const Manager = ({ currentUser, searchQuery }) => {
         }
     }, [passwordArray, searchQuery])
 
-
-
-
     const copyText = (text) => {
         toast.success('Copied to clipboard!', { autoClose: 2000 });
         navigator.clipboard.writeText(text)
@@ -47,16 +44,13 @@ const Manager = ({ currentUser, searchQuery }) => {
 
     const showPassword = () => {
         passwordRef.current.type = "text"
-        console.log(ref.current.src)
         if (ref.current.src.includes("icons/eye.png")) {
             ref.current.src = "icons/eyecross.png"
             passwordRef.current.type = "password"
-        }
-        else {
+        } else {
             passwordRef.current.type = "text"
             ref.current.src = "icons/eye.png"
         }
-
     }
 
     const savePassword = async () => {
@@ -70,63 +64,50 @@ const Manager = ({ currentUser, searchQuery }) => {
         }
 
         if (siteOk && usernameOk && passwordOk) {
+            const newId = uuidv4();
 
-            const newId = uuidv4(); // ✅ Generate once
-
-            // If editing, delete old entry
             if (form.id) {
-                await fetch(`${API_BASE_URL}/api`, {
+                await fetch(`${API}/`, {
                     method: "DELETE",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ id: form.id })
                 });
             }
 
-            // Add to state with user scoping
             const userEmail = currentUser?.email || ''
             setPasswordArray([...passwordArray, { ...form, id: newId, userEmail }]);
 
-            // Save to MongoDB
-            await fetch(`${API_BASE_URL}/api`, {
+            await fetch(`${API}/`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ ...form, id: newId, userEmail: currentUser?.email || '' })
             });
 
-            // Reset form
             setform({ site: "", username: "", password: "" });
             toast.success('Password saved!', { autoClose: 2000 });
         }
     };
+
     const deletePassword = async (id) => {
         if (confirm("Do you really want to delete this password?")) {
-            // Remove from UI
             setPasswordArray(passwordArray.filter(item => item.id !== id));
-
-            // Remove from DB
-            await fetch(`${API_BASE_URL}/api`, {
+            await fetch(`${API}/`, {
                 method: "DELETE",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ id })
             });
-
             toast.info('Password Deleted!', { autoClose: 2000 });
         }
     }
-
 
     const editPassword = (id) => {
         setform({ ...passwordArray.filter(i => i.id === id)[0], id: id })
         setPasswordArray(passwordArray.filter(item => item.id !== id))
     }
 
-
     const handleChange = (e) => {
         setform({ ...form, [e.target.name]: e.target.value })
     }
-
-
-
 
     return (
         <>
@@ -156,16 +137,11 @@ const Manager = ({ currentUser, searchQuery }) => {
                                 <img ref={ref} className='p-1' width={30} src="icons/eyecross.png" alt="eye" />
                             </span>
                         </div>
-
                     </div>
                     <button onClick={savePassword} className='flex justify-center items-center gap-2 bg-fuchsia-600 hover:bg-fuchsia-500 rounded-full px-4 md:px-8 py-2 md:py-3 w-full md:w-fit border border-green-900 text-white text-sm md:text-lg font-medium'>
-                        <lord-icon
-                            src="https://cdn.lordicon.com/jgnvfzqg.json"
-                            trigger="hover" >
-                        </lord-icon>
-                        Save Password</button>
-
-
+                        <lord-icon src="https://cdn.lordicon.com/jgnvfzqg.json" trigger="hover"></lord-icon>
+                        Save Password
+                    </button>
                 </div>
 
                 <div className="passwords w-full px-2 md:px-0">
@@ -173,85 +149,63 @@ const Manager = ({ currentUser, searchQuery }) => {
                     {filteredPasswords.length === 0 && passwordArray.length === 0 && <div className='text-white text-sm md:text-base'> No passwords to show</div>}
                     {filteredPasswords.length === 0 && passwordArray.length > 0 && searchQuery.trim() !== "" && <div className='text-white text-sm md:text-base'> No passwords match your search</div>}
                     {filteredPasswords.length != 0 &&
-                    <>
-                    {/* Responsive table */}
-                    <div className='w-full overflow-x-auto rounded-md ring-1 ring-green-300/40 mb-10 bg-green-50'>
-                        <table className="w-full border-collapse text-xs sm:text-sm md:text-base bg-green-50">
-                            <thead>
-                                <tr className='bg-green-800'>
-                                    <th className='py-2 px-2 sm:px-3 text-left text-white border-r border-green-700'>Site</th>
-                                    <th className='py-2 px-2 sm:px-3 text-left text-white border-r border-green-700'>Username</th>
-                                    <th className='py-2 px-2 sm:px-3 text-left text-white border-r border-green-700'>Password</th>
-                                    <th className='py-2 px-2 sm:px-3 text-center text-white'>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody className='bg-green-50'>
-                                {filteredPasswords.map((item, index) => {
-                                    return <tr key={index} className='align-top border-b border-green-300'>
-                                        <td className='py-2 px-2 sm:px-3 bg-white/50 border-r border-green-300'>
-                                            <div className='flex items-center justify-start gap-1 sm:gap-2'>
-                                                <a href={item.site} target='_blank' className='truncate block max-w-[40vw] sm:max-w-[200px] md:max-w-none text-xs sm:text-sm md:text-base'>{item.site}</a>
-                                                <button className='lordiconcopy size-5 sm:size-6 cursor-pointer flex-shrink-0 p-0.5' onClick={() => { copyText(item.site) }} aria-label='Copy site'>
-                                                    <lord-icon
-                                                        style={{ "width": "100%", "height": "100%" }}
-                                                        src="https://cdn.lordicon.com/iykgtsbt.json"
-                                                        trigger="hover" >
-                                                    </lord-icon>
-                                                </button>
-                                            </div>
-                                        </td>
-                                        <td className='py-2 px-2 sm:px-3 bg-white/50 border-r border-green-300'>
-                                            <div className='flex items-center justify-start gap-1 sm:gap-2'>
-                                                <span className='truncate max-w-[35vw] sm:max-w-[150px] md:max-w-none text-xs sm:text-sm md:text-base'>{item.username}</span>
-                                                <button className='lordiconcopy size-5 sm:size-6 cursor-pointer flex-shrink-0 p-0.5' onClick={() => { copyText(item.username) }} aria-label='Copy username'>
-                                                    <lord-icon
-                                                        style={{ "width": "100%", "height": "100%" }}
-                                                        src="https://cdn.lordicon.com/iykgtsbt.json"
-                                                        trigger="hover" >
-                                                    </lord-icon>
-                                                </button>
-                                            </div>
-                                        </td>
-                                        <td className='py-2 px-2 sm:px-3 bg-white/50 border-r border-green-300'>
-                                            <div className='flex items-center justify-start gap-1 sm:gap-2'>
-                                                <span className='text-xs sm:text-sm md:text-base'>{"*".repeat(Math.min(item.password.length, 8))}</span>
-                                                <button className='lordiconcopy size-5 sm:size-6 cursor-pointer flex-shrink-0 p-0.5' onClick={() => { copyText(item.password) }} aria-label='Copy password'>
-                                                    <lord-icon
-                                                        style={{ "width": "100%", "height": "100%" }}
-                                                        src="https://cdn.lordicon.com/iykgtsbt.json"
-                                                        trigger="hover" >
-                                                    </lord-icon>
-                                                </button>
-                                            </div>
-                                        </td>
-                                        <td className='py-2 px-2 sm:px-3 bg-white/50 text-center'>
-                                            <div className='flex items-center justify-center gap-1 sm:gap-2'>
-                                                <button className='cursor-pointer hover:scale-110 transition' onClick={() => { editPassword(item.id) }} aria-label='Edit'>
-                                                    <lord-icon
-                                                        src="https://cdn.lordicon.com/gwlusjdu.json"
-                                                        trigger="hover"
-                                                        style={{ "width": "20px", "height": "20px" }}>
-                                                    </lord-icon>
-                                                </button>
-                                                <button className='cursor-pointer hover:scale-110 transition' onClick={() => { deletePassword(item.id) }} aria-label='Delete'>
-                                                    <lord-icon
-                                                        src="https://cdn.lordicon.com/skkahier.json"
-                                                        trigger="hover"
-                                                        style={{ "width": "20px", "height": "20px" }}>
-                                                    </lord-icon>
-                                                </button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                })}
-                            </tbody>
-                        </table>
-                    </div>
-                    </>
+                        <>
+                            <div className='w-full overflow-x-auto rounded-md ring-1 ring-green-300/40 mb-10 bg-green-50'>
+                                <table className="w-full border-collapse text-xs sm:text-sm md:text-base bg-green-50">
+                                    <thead>
+                                        <tr className='bg-green-800'>
+                                            <th className='py-2 px-2 sm:px-3 text-left text-white border-r border-green-700'>Site</th>
+                                            <th className='py-2 px-2 sm:px-3 text-left text-white border-r border-green-700'>Username</th>
+                                            <th className='py-2 px-2 sm:px-3 text-left text-white border-r border-green-700'>Password</th>
+                                            <th className='py-2 px-2 sm:px-3 text-center text-white'>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className='bg-green-50'>
+                                        {filteredPasswords.map((item, index) => {
+                                            return <tr key={index} className='align-top border-b border-green-300'>
+                                                <td className='py-2 px-2 sm:px-3 bg-white/50 border-r border-green-300'>
+                                                    <div className='flex items-center justify-start gap-1 sm:gap-2'>
+                                                        <a href={item.site} target='_blank' className='truncate block max-w-[40vw] sm:max-w-[200px] md:max-w-none text-xs sm:text-sm md:text-base'>{item.site}</a>
+                                                        <button className='lordiconcopy size-5 sm:size-6 cursor-pointer flex-shrink-0 p-0.5' onClick={() => { copyText(item.site) }} aria-label='Copy site'>
+                                                            <lord-icon style={{ "width": "100%", "height": "100%" }} src="https://cdn.lordicon.com/iykgtsbt.json" trigger="hover"></lord-icon>
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                                <td className='py-2 px-2 sm:px-3 bg-white/50 border-r border-green-300'>
+                                                    <div className='flex items-center justify-start gap-1 sm:gap-2'>
+                                                        <span className='truncate max-w-[35vw] sm:max-w-[150px] md:max-w-none text-xs sm:text-sm md:text-base'>{item.username}</span>
+                                                        <button className='lordiconcopy size-5 sm:size-6 cursor-pointer flex-shrink-0 p-0.5' onClick={() => { copyText(item.username) }} aria-label='Copy username'>
+                                                            <lord-icon style={{ "width": "100%", "height": "100%" }} src="https://cdn.lordicon.com/iykgtsbt.json" trigger="hover"></lord-icon>
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                                <td className='py-2 px-2 sm:px-3 bg-white/50 border-r border-green-300'>
+                                                    <div className='flex items-center justify-start gap-1 sm:gap-2'>
+                                                        <span className='text-xs sm:text-sm md:text-base'>{"*".repeat(Math.min(item.password.length, 8))}</span>
+                                                        <button className='lordiconcopy size-5 sm:size-6 cursor-pointer flex-shrink-0 p-0.5' onClick={() => { copyText(item.password) }} aria-label='Copy password'>
+                                                            <lord-icon style={{ "width": "100%", "height": "100%" }} src="https://cdn.lordicon.com/iykgtsbt.json" trigger="hover"></lord-icon>
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                                <td className='py-2 px-2 sm:px-3 bg-white/50 text-center'>
+                                                    <div className='flex items-center justify-center gap-1 sm:gap-2'>
+                                                        <button className='cursor-pointer hover:scale-110 transition' onClick={() => { editPassword(item.id) }} aria-label='Edit'>
+                                                            <lord-icon src="https://cdn.lordicon.com/gwlusjdu.json" trigger="hover" style={{ "width": "20px", "height": "20px" }}></lord-icon>
+                                                        </button>
+                                                        <button className='cursor-pointer hover:scale-110 transition' onClick={() => { deletePassword(item.id) }} aria-label='Delete'>
+                                                            <lord-icon src="https://cdn.lordicon.com/skkahier.json" trigger="hover" style={{ "width": "20px", "height": "20px" }}></lord-icon>
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        })}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </>
                     }
                 </div>
             </div>
-
         </>
     )
 }
