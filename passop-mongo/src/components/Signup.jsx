@@ -1,10 +1,6 @@
 import React, { useRef, useState } from 'react'
 import { ToastContainer, toast, Bounce } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
-<<<<<<< HEAD
-=======
-import API_BASE_URL from '../config'
->>>>>>> cb4c07ea9b04b5ca64902309f25ed692fb1d9cf2
 
 function Signup({ onSuccess, onSwitchToLogin }) {
     const passwordRef = useRef(null)
@@ -72,11 +68,7 @@ function Signup({ onSuccess, onSwitchToLogin }) {
 
             // Also store in MongoDB collection 'signup_page_details'
             try {
-<<<<<<< HEAD
                 const res = await fetch('http://localhost:3000/signup', {
-=======
-                const res = await fetch(`${API_BASE_URL}/api/signup`, {
->>>>>>> cb4c07ea9b04b5ca64902309f25ed692fb1d9cf2
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(newUser)

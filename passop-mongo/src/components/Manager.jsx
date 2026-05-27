@@ -3,7 +3,6 @@ import { useRef, useState, useEffect } from 'react';
 import { ToastContainer, toast, Bounce } from 'react-toastify';
 import { v4 as uuidv4 } from 'uuid';
 import 'react-toastify/dist/ReactToastify.css';
-import API_BASE_URL from '../config';
 
 const Manager = ({ currentUser, searchQuery }) => {
     const ref = useRef()
@@ -13,7 +12,7 @@ const Manager = ({ currentUser, searchQuery }) => {
     const [filteredPasswords, setFilteredPasswords] = useState([])
 
     const getPasswords = async () => {
-        let req = await fetch(`${API_BASE_URL}/api`)
+        let req = await fetch("http://localhost:3000/")
         let passwords = await req.json()
         const email = (currentUser?.email || '').toLowerCase()
         const filtered = email ? passwords.filter(p => (p.userEmail || '').toLowerCase() === email) : []
@@ -75,7 +74,7 @@ const Manager = ({ currentUser, searchQuery }) => {
 
             // If editing, delete old entry
             if (form.id) {
-                await fetch(`${API_BASE_URL}/api`, {
+                await fetch("http://localhost:3000/", {
                     method: "DELETE",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ id: form.id })
@@ -87,7 +86,7 @@ const Manager = ({ currentUser, searchQuery }) => {
             setPasswordArray([...passwordArray, { ...form, id: newId, userEmail }]);
 
             // Save to MongoDB
-            await fetch(`${API_BASE_URL}/api`, {
+            await fetch("http://localhost:3000/", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ ...form, id: newId, userEmail: currentUser?.email || '' })
@@ -104,7 +103,7 @@ const Manager = ({ currentUser, searchQuery }) => {
             setPasswordArray(passwordArray.filter(item => item.id !== id));
 
             // Remove from DB
-            await fetch(`${API_BASE_URL}/api`, {
+            await fetch("http://localhost:3000/", {
                 method: "DELETE",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ id })

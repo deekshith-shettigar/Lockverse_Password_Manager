@@ -45,21 +45,9 @@ Before running this project, make sure you have the following installed:
 
 ```
 passop-mongo/
-<<<<<<< HEAD
 ├── backend/
 │   ├── server.js           # Express server and API routes
 │   ├── package.json        # Backend dependencies
-=======
-├── api/                    # Serverless API functions (for Vercel)
-│   ├── index.js           # Password CRUD operations
-│   ├── login.js           # Login endpoint
-│   ├── signup.js          # Signup endpoint
-│   ├── forgot-password.js # Password reset endpoint
-│   └── package.json       # API dependencies
-├── backend/
-│   ├── server.js          # Express server (for local development)
-│   ├── package.json       # Backend dependencies
->>>>>>> cb4c07ea9b04b5ca64902309f25ed692fb1d9cf2
 │   └── .env               # Environment variables
 ├── src/
 │   ├── components/
@@ -81,14 +69,7 @@ passop-mongo/
 │   └── icons/             # Eye icons and other assets
 ├── package.json
 ├── vite.config.js
-<<<<<<< HEAD
 ├── tailwind.config.js
-=======
-├── vercel.json            # Vercel deployment configuration
-├── .vercelignore          # Files to exclude from deployment
-├── tailwind.config.js
-├── DEPLOYMENT.md          # Detailed deployment guide
->>>>>>> cb4c07ea9b04b5ca64902309f25ed692fb1d9cf2
 └── README.md
 ```
 
@@ -126,9 +107,6 @@ passop-mongo/
 ## 👨‍💻 Author
 
 **Deekshith Shettigar**
-<<<<<<< HEAD
 
 - GitHub: [@deekshith-shettigar](https://github.com/deekshith-shettigar)
 
-=======
->>>>>>> cb4c07ea9b04b5ca64902309f25ed692fb1d9cf2

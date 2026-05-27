@@ -1,10 +1,6 @@
 import React, { useRef, useState } from 'react'
 import { ToastContainer, toast, Bounce } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
-<<<<<<< HEAD
-=======
-import API_BASE_URL from '../config'
->>>>>>> cb4c07ea9b04b5ca64902309f25ed692fb1d9cf2
 
 function Login({ onSuccess, onSwitchToSignup, onSwitchToForgot }) {
     const passwordRef = useRef(null)
@@ -54,11 +50,7 @@ function Login({ onSuccess, onSwitchToSignup, onSwitchToForgot }) {
         try {
             setIsSubmitting(true)
             // First try backend authentication
-<<<<<<< HEAD
             const response = await fetch('http://localhost:3000/login', {
-=======
-            const response = await fetch(`${API_BASE_URL}/api/login`, {
->>>>>>> cb4c07ea9b04b5ca64902309f25ed692fb1d9cf2
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
