@@ -6,19 +6,14 @@ const cors = require('cors')
 const bcrypt = require('bcryptjs')
 const crypto = require('crypto')
 
-
 dotenv.config()
 
-// ─── AES Encryption helpers for vault passwords ───────────────────────────────
-// Store VAULT_SECRET (32-char / 256-bit hex string) in your .env file
-// Generate one with: node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
-const VAULT_KEY = Buffer.from(process.env.VAULT_SECRET, 'hex') // 32 bytes → AES-256
+const VAULT_KEY = Buffer.from(process.env.VAULT_SECRET, 'hex')
 
 function encryptVaultPassword(plainText) {
-    const iv = crypto.randomBytes(16)                          // fresh IV every time
+    const iv = crypto.randomBytes(16)
     const cipher = crypto.createCipheriv('aes-256-cbc', VAULT_KEY, iv)
     const encrypted = Buffer.concat([cipher.update(plainText, 'utf8'), cipher.final()])
-    // store as iv:ciphertext, both base64
     return iv.toString('base64') + ':' + encrypted.toString('base64')
 }
 
@@ -31,7 +26,6 @@ function decryptVaultPassword(stored) {
     return decrypted.toString('utf8')
 }
 
-// ─── DB connection ─────────────────────────────────────────────────────────────
 const url = process.env.MONGO_URI;
 const client = new MongoClient(url);
 client.connect();
@@ -40,33 +34,23 @@ const dbName = process.env.DB_NAME
 const app = express()
 const port = 3000
 
-// Middleware
 app.use(bodyparser.json())
 app.use(cors())
 
-
-// ─── Vault passwords ───────────────────────────────────────────────────────────
-
-// Get all the passwords (decrypt on the way out)
 app.get('/', async (req, res) => {
     const db = client.db(dbName);
     const collection = db.collection('passwords');
     const findResult = await collection.find({}).toArray();
-
-    // Decrypt each vault password before sending to the frontend
     const decrypted = findResult.map(entry => {
         try {
             return { ...entry, password: decryptVaultPassword(entry.password) }
         } catch (_) {
-            // If decryption fails (e.g. legacy plain-text row), return as-is
             return entry
         }
     })
-
     res.json(decrypted)
 })
 
-// Save a password (encrypt before storing)
 app.post('/', async (req, res) => {
     const { password, ...rest } = req.body
     const encryptedPassword = encryptVaultPassword(password)
@@ -76,7 +60,6 @@ app.post('/', async (req, res) => {
     res.send({ success: true, result: findResult })
 })
 
-// Delete a password by id
 app.delete('/', async (req, res) => {
     const { id } = req.body;
     const db = client.db(dbName);
@@ -85,14 +68,6 @@ app.delete('/', async (req, res) => {
     res.send({ success: true, result });
 });
 
-
-<<<<<<< HEAD
-// ─── Auth endpoints ────────────────────────────────────────────────────────────
-
-// Login — compare with bcrypt hash
-=======
-// Login endpoint
->>>>>>> cb4c07ea9b04b5ca64902309f25ed692fb1d9cf2
 app.post('/login', async (req, res) => {
     try {
         const { name, email, password } = req.body || {}
@@ -104,35 +79,17 @@ app.post('/login', async (req, res) => {
         const emailTrimmed = String(email).trim()
         const user = await collection.findOne({ email: emailTrimmed })
         if (!user) {
-<<<<<<< HEAD
             return res.status(401).send({ success: false, message: 'No account found. Please sign up.' })
         }
-
-        // Compare submitted password against bcrypt hash
         const passwordMatch = await bcrypt.compare(password, user.password)
         if (!passwordMatch) {
             return res.status(401).send({ success: false, message: 'Enter correct password' })
         }
-
-=======
-            // User account not found - return generic message (not specific to email)
-            return res.status(401).send({ success: false, message: 'No account found. Please sign up.' })
-        }
-        // Check password first (case sensitive)
-        if (password !== user.password) {
-            return res.status(401).send({ success: false, message: 'Enter correct password' })
-        }
->>>>>>> cb4c07ea9b04b5ca64902309f25ed692fb1d9cf2
-        // Check name (case sensitive)
         const nameTrimmed = String(name).trim()
         const storedName = String(user.name).trim()
         if (nameTrimmed !== storedName) {
             return res.status(401).send({ success: false, message: 'Enter correct username' })
         }
-<<<<<<< HEAD
-
-=======
->>>>>>> cb4c07ea9b04b5ca64902309f25ed692fb1d9cf2
         res.send({ success: true, user: { name: user.name, email: user.email } })
     } catch (e) {
         console.error('Login error', e)
@@ -140,11 +97,6 @@ app.post('/login', async (req, res) => {
     }
 })
 
-<<<<<<< HEAD
-// Signup — hash password with bcrypt before storing
-=======
-// Save signup details to 'signup_page_details'
->>>>>>> cb4c07ea9b04b5ca64902309f25ed692fb1d9cf2
 app.post('/signup', async (req, res) => {
     try {
         const { name, email, password } = req.body || {}
@@ -158,15 +110,8 @@ app.post('/signup', async (req, res) => {
         if (existing) {
             return res.status(409).send({ success: false, message: 'Email already registered' })
         }
-<<<<<<< HEAD
-
-        // Hash the password with bcrypt (cost factor 12)
         const hashedPassword = await bcrypt.hash(password, 12)
-
         const doc = { name, email: emailTrimmed, password: hashedPassword, createdAt: new Date() }
-=======
-        const doc = { name, email: emailTrimmed, password, createdAt: new Date() }
->>>>>>> cb4c07ea9b04b5ca64902309f25ed692fb1d9cf2
         const result = await collection.insertOne(doc)
         res.send({ success: true, result })
     } catch (e) {
@@ -175,11 +120,6 @@ app.post('/signup', async (req, res) => {
     }
 })
 
-<<<<<<< HEAD
-// Forgot password — hash new password before updating
-=======
-// Forgot password endpoint
->>>>>>> cb4c07ea9b04b5ca64902309f25ed692fb1d9cf2
 app.post('/forgot-password', async (req, res) => {
     try {
         const { email, password } = req.body || {}
@@ -193,29 +133,17 @@ app.post('/forgot-password', async (req, res) => {
         if (!user) {
             return res.status(404).send({ success: false, message: 'Email not found' })
         }
-
-<<<<<<< HEAD
-        // Hash the new password before saving
         const hashedPassword = await bcrypt.hash(password, 12)
-
         await collection.updateOne(
             { email: emailTrimmed },
             { $set: { password: hashedPassword, updatedAt: new Date() } }
-=======
-        // Update password directly
-        await collection.updateOne(
-            { email: emailTrimmed },
-            { $set: { password: password, updatedAt: new Date() } }
->>>>>>> cb4c07ea9b04b5ca64902309f25ed692fb1d9cf2
         )
-
         res.send({ success: true, message: 'Password reset successfully' })
     } catch (e) {
         console.error('Forgot password error', e)
         res.status(500).send({ success: false, message: 'Internal Server Error' })
     }
 })
-
 
 app.listen(port, () => {
     console.log(`Example app listening on  http://localhost:${port}`)
