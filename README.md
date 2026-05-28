@@ -4,6 +4,11 @@
 
 LockVerse is a full-stack password management application that helps you securely store and manage all your login credentials in one place. Built with modern web technologies, it provides a clean, intuitive interface for organizing your passwords across multiple websites and applications.
 
+## 🌐 Live Demo
+
+- **Frontend:** https://lockverse-frontend.onrender.com
+- **Backend:** https://lockverse-password-manager.onrender.com
+
 ## ✨ Features
 
 - 🔒 **Secure Password Storage** - Store website URLs, usernames, and passwords safely in MongoDB
@@ -29,38 +34,82 @@ LockVerse is a full-stack password management application that helps you securel
 ### Backend
 - **Node.js** - JavaScript runtime
 - **Express.js** - Web application framework
-- **MongoDB** - NoSQL database for data storage
+- **MongoDB Atlas** - Cloud NoSQL database for data storage
+- **bcryptjs** - Password hashing for user accounts
+- **crypto (AES-256-CBC)** - Encryption for stored vault passwords
 - **CORS** - Cross-Origin Resource Sharing middleware
+
+### Deployment
+- **Frontend** - Render (Static Site)
+- **Backend** - Render (Web Service)
+- **Database** - MongoDB Atlas
 
 ## 📋 Prerequisites
 
 Before running this project, make sure you have the following installed:
 
 - [Node.js](https://nodejs.org/) (v14 or higher)
-- [MongoDB](https://www.mongodb.com/) (local or Atlas)
+- [MongoDB Atlas](https://www.mongodb.com/atlas) account
 - npm or yarn package manager
 
+## 🚀 Getting Started
+
+### 1. Clone the repository
+```bash
+git clone https://github.com/deekshith-shettigar/Lockverse_Password_Manager.git
+cd Lockverse_Password_Manager
+```
+
+### 2. Install frontend dependencies
+```bash
+npm install
+```
+
+### 3. Install backend dependencies
+```bash
+cd backend
+npm install
+```
+
+### 4. Set up environment variables
+
+Create `backend/.env`:
+```env
+MONGO_URI=your_mongodb_atlas_connection_string
+DB_NAME=your_database_name
+VAULT_SECRET=your_64_hex_character_secret_key
+API_KEY=your_secret_api_key
+```
+
+Generate VAULT_SECRET:
+```bash
+node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+```
+
+Create `.env` in root (for frontend):
+```env
+VITE_API_KEY=your_secret_api_key
+```
+
+### 5. Run the backend
+```bash
+cd backend
+node server.js
+```
+
+### 6. Run the frontend
+```bash
+npm run dev
+```
 
 ## 📂 Project Structure
 
 ```
 passop-mongo/
-<<<<<<< HEAD
 ├── backend/
 │   ├── server.js           # Express server and API routes
 │   ├── package.json        # Backend dependencies
-=======
-├── api/                    # Serverless API functions (for Vercel)
-│   ├── index.js           # Password CRUD operations
-│   ├── login.js           # Login endpoint
-│   ├── signup.js          # Signup endpoint
-│   ├── forgot-password.js # Password reset endpoint
-│   └── package.json       # API dependencies
-├── backend/
-│   ├── server.js          # Express server (for local development)
-│   ├── package.json       # Backend dependencies
->>>>>>> cb4c07ea9b04b5ca64902309f25ed692fb1d9cf2
-│   └── .env               # Environment variables
+│   └── .env               # Environment variables (not committed)
 ├── src/
 │   ├── components/
 │   │   ├── About.jsx      # About section
@@ -81,14 +130,7 @@ passop-mongo/
 │   └── icons/             # Eye icons and other assets
 ├── package.json
 ├── vite.config.js
-<<<<<<< HEAD
 ├── tailwind.config.js
-=======
-├── vercel.json            # Vercel deployment configuration
-├── .vercelignore          # Files to exclude from deployment
-├── tailwind.config.js
-├── DEPLOYMENT.md          # Detailed deployment guide
->>>>>>> cb4c07ea9b04b5ca64902309f25ed692fb1d9cf2
 └── README.md
 ```
 
@@ -99,9 +141,9 @@ passop-mongo/
 - `POST /login` - Login with username/email and password
 - `POST /forgot-password` - Reset password
 
-### Password Management
-- `GET /` - Get all passwords for the authenticated user
-- `POST /` - Save a new password
+### Password Management (requires x-api-key header)
+- `GET /` - Get all passwords (decrypted for frontend use)
+- `POST /` - Save a new password (encrypted before storing)
 - `DELETE /` - Delete a password by ID
 
 ## 💻 Usage
@@ -117,18 +159,17 @@ passop-mongo/
 
 ## 🔒 Security Features
 
-- Password input fields with show/hide toggle
-- User-specific data isolation
-- Confirmation dialog before deleting passwords
-- Secure MongoDB storage
-- CORS protection
+- **bcrypt hashing** - User account passwords are hashed with bcrypt (cost factor 12) and never stored in plain text
+- **AES-256-CBC encryption** - Vault passwords are encrypted with AES-256 before storing in MongoDB
+- **API Key protection** - Password routes are protected with a secret API key header
+- **User-scoped data** - Each user only sees their own passwords
+- **Environment variables** - All secrets stored in .env (never committed to GitHub)
+- **Password input fields** - Show/hide toggle for easy viewing
+- **Confirmation dialog** - Before deleting passwords
+- **CORS protection** - Cross-Origin Resource Sharing middleware
 
 ## 👨‍💻 Author
 
 **Deekshith Shettigar**
-<<<<<<< HEAD
 
 - GitHub: [@deekshith-shettigar](https://github.com/deekshith-shettigar)
-
-=======
->>>>>>> cb4c07ea9b04b5ca64902309f25ed692fb1d9cf2
