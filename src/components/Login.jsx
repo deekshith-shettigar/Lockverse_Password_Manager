@@ -2,12 +2,12 @@ import React, { useRef, useState } from 'react'
 import { ToastContainer, toast, Bounce } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 
-const API = 'https://lockverse-password-manager.onrender.com'
+const API = import.meta.env.VITE_BACKEND_URL
 
 function Login({ onSuccess, onSwitchToSignup, onSwitchToForgot }) {
     const passwordRef = useRef(null)
     const eyeImgRef = useRef(null)
-    const [form, setForm] = useState({ name: '', email: '', password: '' })
+    const [form, setForm] = useState({ email: '', password: '' })
     const [isSubmitting, setIsSubmitting] = useState(false)
 
     const togglePasswordVisibility = () => {
@@ -29,8 +29,8 @@ function Login({ onSuccess, onSwitchToSignup, onSwitchToForgot }) {
     }
 
     const validate = () => {
-        if (!form.name || !form.email || !form.password) {
-            toast.error('Please enter username, email and password', { autoClose: 2000 })
+        if (!form.email || !form.password) {
+            toast.error('Please enter your email and password', { autoClose: 2000 })
             return false
         }
         const emailOk = /[^\s@]+@[^\s@]+\.[^\s@]+/.test(form.email)
@@ -38,8 +38,8 @@ function Login({ onSuccess, onSwitchToSignup, onSwitchToForgot }) {
             toast.error('Please enter a valid email', { autoClose: 2000 })
             return false
         }
-        if (form.password.length < 4) {
-            toast.error('Password must be at least 4 characters', { autoClose: 2000 })
+        if (form.password.length < 6) {
+            toast.error('Password must be at least 6 characters', { autoClose: 2000 })
             return false
         }
         return true
@@ -53,29 +53,22 @@ function Login({ onSuccess, onSwitchToSignup, onSwitchToForgot }) {
             const response = await fetch(`${API}/login`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name: form.name, email: form.email, password: form.password })
+                body: JSON.stringify({ email: form.email.trim().toLowerCase(), password: form.password })
             })
             const data = await response.json()
-            if (data.success && data.user) {
+            if (data.success && data.user && data.token) {
                 localStorage.setItem('lv_current_user', JSON.stringify(data.user))
+                localStorage.setItem('lv_token', data.token)
                 toast.success('Logged in successfully', { autoClose: 800 })
-                if (typeof onSuccess === 'function') onSuccess(data.user)
+                if (typeof onSuccess === 'function') onSuccess(data.user, data.token)
                 return
             }
-            const message = data.message ? data.message.toLowerCase() : ''
-            if (message.includes('no account found') || message.includes('not found')) {
-                toast.warning('No account found. Please sign up!', { autoClose: 4000, onClick: onSwitchToSignup })
-                return
+            const msg = data.message || ''
+            if (msg.toLowerCase().includes('verify your email')) {
+                toast.warning('Please verify your email before logging in. Check your inbox.', { autoClose: 5000 })
+            } else {
+                toast.error('Incorrect email or password', { autoClose: 2000 })
             }
-            if (message.includes('username')) {
-                toast.error('Enter the correct username', { autoClose: 2000 })
-                return
-            }
-            if (message.includes('password')) {
-                toast.error('Enter the correct password', { autoClose: 2000 })
-                return
-            }
-            toast.warning('No account found. Please sign up!', { autoClose: 4000, onClick: onSwitchToSignup })
         } catch (err) {
             toast.error('Network error. Please try again.', { autoClose: 2000 })
         } finally {
@@ -95,8 +88,6 @@ function Login({ onSuccess, onSwitchToSignup, onSwitchToForgot }) {
                         <span className='text-black'>Lock</span><span className='text-orange-500'>Verse</span>
                     </h1>
                     <p className="text-center text-slate-700 mb-4 md:mb-6">Login to your account</p>
-                    <label className="block text-sm font-medium text-slate-700 mb-1" htmlFor="name">Username</label>
-                    <input id="name" name="name" type="text" value={form.name} onChange={handleChange} placeholder="Your username" className="mb-4 rounded-full border border-green-500 w-full p-4 py-3 bg-white text-base md:text-lg" />
                     <label className="block text-sm font-medium text-slate-700 mb-1" htmlFor="email">Email</label>
                     <input id="email" name="email" type="email" value={form.email} onChange={handleChange} placeholder="you@example.com" className="mb-4 rounded-full border border-green-500 w-full p-4 py-3 bg-white text-base md:text-lg" />
                     <label className="block text-sm font-medium text-slate-700 mb-1" htmlFor="password">Password</label>

@@ -6,10 +6,9 @@ const Footer = () => {
             <div className="logo font-bold text-white text-2xl">
                 <span className='text-black'>Lock</span><span className='text-orange-500'>Verse</span>
             </div>
-            <div className='flex justify-center items-center mt-2'>
+            <div className='flex justify-center items-center mt-2 text-center px-4'>
                 Copyright &copy; Deekshith Shettigar - All rights reserved
             </div>
-
         </div>
     )
 }

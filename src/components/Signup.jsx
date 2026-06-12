@@ -2,7 +2,7 @@ import React, { useRef, useState } from 'react'
 import { ToastContainer, toast, Bounce } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 
-const API = 'https://lockverse-password-manager.onrender.com'
+const API = import.meta.env.VITE_BACKEND_URL
 
 function Signup({ onSuccess, onSwitchToLogin }) {
     const passwordRef = useRef(null)
@@ -11,6 +11,7 @@ function Signup({ onSuccess, onSwitchToLogin }) {
     const eyeCfmRef = useRef(null)
     const [form, setForm] = useState({ name: '', email: '', password: '', confirm: '' })
     const [isSubmitting, setIsSubmitting] = useState(false)
+    const [signedUpEmail, setSignedUpEmail] = useState(null) // non-null = show confirmation screen
 
     const toggleVisibility = (inputRef, imgRef) => {
         if (!inputRef.current || !imgRef.current) return
@@ -41,7 +42,19 @@ function Signup({ onSuccess, onSwitchToLogin }) {
             return false
         }
         if (form.password.length < 6) {
-            toast.error('Password must be at least 6 characters', { autoClose: 2000 })
+            toast.error('Password must be at least 6 characters', { autoClose: 3000 })
+            return false
+        }
+        if (!/[A-Za-z]/.test(form.password)) {
+            toast.error('Password must contain at least one letter', { autoClose: 3000 })
+            return false
+        }
+        if (!/[0-9]/.test(form.password)) {
+            toast.error('Password must contain at least one number', { autoClose: 3000 })
+            return false
+        }
+        if (!/[^A-Za-z0-9]/.test(form.password)) {
+            toast.error('Password must contain at least one special character (e.g. @, #, $)', { autoClose: 3000 })
             return false
         }
         if (form.password !== form.confirm) {
@@ -69,14 +82,40 @@ function Signup({ onSuccess, onSwitchToLogin }) {
                 toast.error(msg, { autoClose: 2000 })
                 return
             }
-            await new Promise((r) => setTimeout(r, 700))
-            toast.success('Account created successfully', { autoClose: 900 })
-            if (typeof onSuccess === 'function') onSuccess()
+            setSignedUpEmail(form.email.trim().toLowerCase())
         } catch (err) {
             toast.error('Signup failed. Please try again.', { autoClose: 2000 })
         } finally {
             setIsSubmitting(false)
         }
+    }
+
+    if (signedUpEmail) {
+        return (
+            <>
+                <ToastContainer position="top-right" autoClose={2000} hideProgressBar={false} closeOnClick pauseOnHover draggable theme="dark" transition={Bounce} />
+                <div className="absolute inset-0 -z-10 h-full w-full bg-green-50 bg-[linear-gradient(to_right,#8080800a_1px,transparent_1px),linear-gradient(to_bottom,#8080800a_1px,transparent_1px)] bg-[size:14px_24px]">
+                    <div className="absolute left-0 right-0 top-0 -z-10 m-auto h-[310px] w-[310px] rounded-full bg-green-400 opacity-20 blur-[100px]"></div>
+                </div>
+                <div className="p-3 md:mycontainer min-h-[88.2vh] flex items-center justify-center">
+                    <div className="w-full max-w-sm md:max-w-md bg-white/90 backdrop-blur rounded-2xl border border-green-300 p-6 md:p-8 shadow text-center">
+                        <div className="text-5xl mb-4">📧</div>
+                        <h1 className="text-2xl font-bold mb-2">
+                            <span className='text-black'>Lock</span><span className='text-orange-500'>Verse</span>
+                        </h1>
+                        <p className="text-lg font-semibold text-slate-800 mb-2">Check your email</p>
+                        <p className="text-sm text-slate-600 mb-1">We sent a verification link to:</p>
+                        <p className="font-semibold text-fuchsia-700 mb-4">{signedUpEmail}</p>
+                        <p className="text-sm text-slate-500 mb-6">Click the link in the email to activate your account. The link expires in 24 hours.</p>
+                        <p className="text-xs text-slate-400 mb-6">Can't find it? Check your spam folder.</p>
+                        <button type="button" onClick={onSwitchToLogin}
+                            className="w-full bg-fuchsia-600 hover:bg-fuchsia-500 rounded-full px-6 py-3 text-white font-medium text-base">
+                            Back to Login
+                        </button>
+                    </div>
+                </div>
+            </>
+        )
     }
 
     return (

@@ -1,63 +1,82 @@
 # 🔐 LockVerse
 
-**Your Simple and Secure Password Manager**
+**Your Secure and Modern Password Manager**
 
-LockVerse is a full-stack password management application that helps you securely store and manage all your login credentials in one place. Built with modern web technologies, it provides a clean, intuitive interface for organizing your passwords across multiple websites and applications.
-
-## 🌐 Live Demo
-
-- **Frontend:** https://lockverse-frontend.onrender.com
-- **Backend:** https://lockverse-password-manager.onrender.com
+LockVerse is a full-stack password management application that helps you securely store and manage all your login credentials in one place. Built with modern web technologies, it provides a clean, intuitive interface with enterprise-grade security features.
 
 ## ✨ Features
 
-- 🔒 **Secure Password Storage** - Store website URLs, usernames, and passwords safely in MongoDB
-- 🔍 **Smart Search** - Quickly find your passwords with real-time search functionality
-- 👁️ **Show/Hide Passwords** - Toggle password visibility for easy viewing
-- 📋 **One-Click Copy** - Copy credentials to clipboard with a single click
-- ✏️ **Edit & Delete** - Manage your saved passwords with ease
-- 🎨 **Responsive Design** - Works seamlessly on desktop, tablet, and mobile devices
-- 🔐 **User Authentication** - Secure login and signup system
-- 🔑 **Password Recovery** - Forgot password functionality
-- 🌐 **Landing Page** - Professional landing page with About and Contact sections
-- 🎯 **User-Scoped Data** - Each user sees only their own passwords
+- 🔒 **Secure Password Storage** — Vault passwords encrypted with AES-256-CBC before storing in MongoDB
+- 🔐 **JWT Authentication** — Signed tokens issued at login, verified on every request
+- 📧 **Email Verification** — New accounts must verify their email before logging in
+- 🔑 **Forgot Password** — OTP-based 3-step password reset via email
+- 🛡️ **Brute-Force Protection** — Rate limiting on login (10/15 min) and OTP send (5/15 min)
+- 🔍 **Smart Search** — Real-time password search by site or username
+- 👁️ **Show/Hide Passwords** — Toggle password visibility
+- 📋 **One-Click Copy** — Copy credentials to clipboard instantly
+- ✏️ **Edit & Delete** — Full CRUD for saved passwords
+- 🎨 **Responsive Design** — Works on desktop, tablet, and mobile
+- 🌐 **Landing Page** — Professional landing page with Home, About, and Contact sections
+- 📬 **Contact Form** — Messages sent directly to owner's inbox via Nodemailer
+- 🎯 **User-Scoped Data** — Each user sees only their own passwords, enforced server-side
+
+---
+
+## 🔒 Security Features
+
+| Feature | Detail |
+|--------|--------|
+| Password hashing | bcrypt with cost factor 12 |
+| Vault encryption | AES-256-CBC with random IV per entry |
+| Authentication | JWT (7-day expiry), verified server-side on every request |
+| Email verification | Required before first login — token stored with 24hr TTL |
+| OTP flow | 6-digit OTP, 10-minute expiry, stored in MongoDB (survives restarts) |
+| Rate limiting | Login: 10 attempts / 15 min · OTP send: 5 attempts / 15 min |
+| Password policy | Min 6 chars, must include letter + number + special character |
+| No enumeration | Login and forgot-password never reveal whether an email exists |
+| Secrets | All keys in `.env`, never committed to GitHub |
+
+---
 
 ## 🛠️ Tech Stack
 
 ### Frontend
-- **React** - UI library for building interactive user interfaces
-- **Vite** - Fast build tool and development server
-- **Tailwind CSS** - Utility-first CSS framework for styling
-- **React Toastify** - Beautiful toast notifications
-- **UUID** - Generate unique identifiers for passwords
+- **React 18** — UI library
+- **Vite** — Build tool and dev server
+- **Tailwind CSS** — Utility-first styling
+- **React Toastify** — Toast notifications
+- **UUID** — Unique IDs for vault entries
 
 ### Backend
-- **Node.js** - JavaScript runtime
-- **Express.js** - Web application framework
-- **MongoDB Atlas** - Cloud NoSQL database for data storage
-- **bcryptjs** - Password hashing for user accounts
-- **crypto (AES-256-CBC)** - Encryption for stored vault passwords
-- **CORS** - Cross-Origin Resource Sharing middleware
+- **Node.js + Express** — REST API
+- **MongoDB Atlas** — Cloud NoSQL database
+- **bcryptjs** — User password hashing
+- **jsonwebtoken** — JWT auth
+- **crypto (AES-256-CBC)** — Vault password encryption
+- **nodemailer** — Email sending (verification, OTP, contact form)
+- **express-rate-limit** — Brute-force protection
 
 ### Deployment
-- **Frontend** - Render (Static Site)
-- **Backend** - Render (Web Service)
-- **Database** - MongoDB Atlas
+- **Frontend** — Render (Static Site)
+- **Backend** — Render (Web Service)
+- **Database** — MongoDB Atlas
+
+---
 
 ## 📋 Prerequisites
 
-Before running this project, make sure you have the following installed:
-
-- [Node.js](https://nodejs.org/) (v14 or higher)
+- [Node.js](https://nodejs.org/) v14 or higher
 - [MongoDB Atlas](https://www.mongodb.com/atlas) account
-- npm or yarn package manager
+- Gmail account with an [App Password](https://myaccount.google.com/apppasswords) enabled
+
+---
 
 ## 🚀 Getting Started
 
 ### 1. Clone the repository
 ```bash
 git clone https://github.com/deekshith-shettigar/Lockverse_Password_Manager.git
-cd Lockverse_Password_Manager
+cd Lockverse_Password_Manager/passop-mongo
 ```
 
 ### 2. Install frontend dependencies
@@ -73,22 +92,30 @@ npm install
 
 ### 4. Set up environment variables
 
-Create `backend/.env`:
+**`backend/.env`**
 ```env
 MONGO_URI=your_mongodb_atlas_connection_string
 DB_NAME=your_database_name
 VAULT_SECRET=your_64_hex_character_secret_key
 API_KEY=your_secret_api_key
+EMAIL_USER=you@gmail.com
+EMAIL_PASS=your_gmail_app_password
+JWT_SECRET=your_128_hex_character_jwt_secret
+FRONTEND_URL=http://localhost:5173
 ```
 
-Generate VAULT_SECRET:
-```bash
-node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
-```
-
-Create `.env` in root (for frontend):
+**`.env` (frontend root)**
 ```env
-VITE_API_KEY=your_secret_api_key
+VITE_BACKEND_URL=http://localhost:3000
+```
+
+Generate secrets:
+```bash
+# VAULT_SECRET (32 bytes → 64 hex chars)
+node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+
+# JWT_SECRET (64 bytes → 128 hex chars)
+node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"
 ```
 
 ### 5. Run the backend
@@ -99,77 +126,116 @@ node server.js
 
 ### 6. Run the frontend
 ```bash
+cd ..
 npm run dev
 ```
+
+Open `http://localhost:5173` in your browser.
+
+---
 
 ## 📂 Project Structure
 
 ```
 passop-mongo/
 ├── backend/
-│   ├── server.js           # Express server and API routes
-│   ├── package.json        # Backend dependencies
-│   └── .env               # Environment variables (not committed)
+│   ├── server.js              # Express server, all API routes
+│   ├── package.json           # Backend dependencies
+│   └── .env                   # Backend secrets (not committed)
 ├── src/
 │   ├── components/
-│   │   ├── About.jsx      # About section
-│   │   ├── Contact.jsx    # Contact section
-│   │   ├── Footer.jsx     # Footer component
-│   │   ├── ForgotPassword.jsx
-│   │   ├── Home.jsx       # Home/Hero section
+│   │   ├── About.jsx
+│   │   ├── Contact.jsx        # Contact form → sends email to owner
+│   │   ├── Footer.jsx
+│   │   ├── ForgotPassword.jsx # 3-step OTP password reset
+│   │   ├── Home.jsx
 │   │   ├── LandingPage.jsx
-│   │   ├── Login.jsx      # Login form
-│   │   ├── Manager.jsx    # Password manager UI
-│   │   ├── Navbar.jsx     # Navigation bar
-│   │   └── Signup.jsx     # Signup form
-│   ├── App.jsx            # Main app component
-│   ├── main.jsx           # React entry point
+│   │   ├── Login.jsx
+│   │   ├── Manager.jsx        # Password vault UI
+│   │   ├── Navbar.jsx
+│   │   └── Signup.jsx         # Signup + email verification flow
+│   ├── App.jsx                # Auth routing, JWT session management
+│   ├── main.jsx
 │   ├── App.css
 │   └── index.css
 ├── public/
-│   └── icons/             # Eye icons and other assets
+│   └── icons/
+├── .env                       # Frontend env (not committed)
 ├── package.json
 ├── vite.config.js
-├── tailwind.config.js
-└── README.md
+└── tailwind.config.js
 ```
+
+---
 
 ## 🔌 API Endpoints
 
-### Authentication
-- `POST /signup` - Create a new user account
-- `POST /login` - Login with username/email and password
-- `POST /forgot-password` - Reset password
+### Auth
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `POST` | `/signup` | Register — sends verification email |
+| `GET` | `/verify-email?token=` | Verify email address |
+| `POST` | `/login` | Login — returns JWT |
+| `POST` | `/forgot-password/send-otp` | Send OTP to email |
+| `POST` | `/forgot-password/verify-otp` | Verify OTP |
+| `POST` | `/forgot-password` | Reset password |
+| `POST` | `/contact` | Send contact form message to owner |
 
-### Password Management (requires x-api-key header)
-- `GET /` - Get all passwords (decrypted for frontend use)
-- `POST /` - Save a new password (encrypted before storing)
-- `DELETE /` - Delete a password by ID
+### Vault (requires `Authorization: Bearer <token>`)
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/` | Get logged-in user's passwords |
+| `POST` | `/` | Save a new password |
+| `DELETE` | `/` | Delete a password by ID |
+
+---
 
 ## 💻 Usage
 
-1. **Sign Up**: Create a new account with username, email, and password
-2. **Login**: Access your password vault
-3. **Add Password**: Enter website URL, username, and password, then click "Save Password"
-4. **Search**: Use the search bar in the navbar to filter passwords by username or site
-5. **Copy**: Click the copy icon to copy credentials to clipboard
-6. **Edit**: Click the edit icon to modify existing passwords
-7. **Delete**: Click the delete icon to remove passwords (with confirmation)
-8. **Toggle Visibility**: Click the eye icon to show/hide passwords in the input field
+1. **Sign Up** — Enter name, email, and a strong password (min 6 chars, must include letter + number + special character)
+2. **Verify Email** — Click the link sent to your inbox (expires in 24 hours)
+3. **Login** — Access your password vault
+4. **Add Password** — Enter website URL, username, and password → Save
+5. **Search** — Use the navbar search to filter by site or username
+6. **Copy** — Click copy icon to copy any credential to clipboard
+7. **Edit** — Click edit icon to modify an entry
+8. **Delete** — Click delete icon to remove an entry
+9. **Forgot Password** — Enter email → receive OTP → verify → set new password
 
-## 🔒 Security Features
+---
 
-- **bcrypt hashing** - User account passwords are hashed with bcrypt (cost factor 12) and never stored in plain text
-- **AES-256-CBC encryption** - Vault passwords are encrypted with AES-256 before storing in MongoDB
-- **API Key protection** - Password routes are protected with a secret API key header
-- **User-scoped data** - Each user only sees their own passwords
-- **Environment variables** - All secrets stored in .env (never committed to GitHub)
-- **Password input fields** - Show/hide toggle for easy viewing
-- **Confirmation dialog** - Before deleting passwords
-- **CORS protection** - Cross-Origin Resource Sharing middleware
+## 🚀 Deploying to Render
+
+### Backend (Web Service)
+Set these environment variables in Render → your backend service → **Environment**:
+
+```
+MONGO_URI
+DB_NAME
+VAULT_SECRET
+API_KEY
+EMAIL_USER
+EMAIL_PASS
+JWT_SECRET
+FRONTEND_URL=https://your-frontend.onrender.com
+```
+
+### Frontend (Static Site)
+Set this environment variable in Render → your frontend service → **Environment**:
+
+```
+VITE_BACKEND_URL=https://your-backend.onrender.com
+```
+
+**Build command:** `npm run build`  
+**Publish directory:** `dist`
+
+---
 
 ## 👨‍💻 Author
 
 **Deekshith Shettigar**
 
 - GitHub: [@deekshith-shettigar](https://github.com/deekshith-shettigar)
+- LinkedIn: [linkedin.com/in/deekshith38](https://www.linkedin.com/in/deekshith38/)
+- Instagram: [@_deekshith_s_](https://www.instagram.com/_deekshith_s_/)

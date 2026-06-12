@@ -4,29 +4,41 @@ import { ToastContainer, toast, Bounce } from 'react-toastify';
 import { v4 as uuidv4 } from 'uuid';
 import 'react-toastify/dist/ReactToastify.css';
 
-const API = 'https://lockverse-password-manager.onrender.com'
-const API_KEY = import.meta.env.VITE_API_KEY
+const API = import.meta.env.VITE_BACKEND_URL
 
-const Manager = ({ currentUser, searchQuery }) => {
+const Manager = ({ currentUser, token, searchQuery }) => {
     const ref = useRef()
     const passwordRef = useRef()
     const [form, setform] = useState({ site: "", username: "", password: "" })
     const [passwordArray, setPasswordArray] = useState([])
     const [filteredPasswords, setFilteredPasswords] = useState([])
+    const [isLoading, setIsLoading] = useState(false)
 
     const getPasswords = async () => {
-        let req = await fetch(`${API}/`, {
-            headers: { 'x-api-key': API_KEY }
-        })
-        let passwords = await req.json()
-        const email = (currentUser?.email || '').toLowerCase()
-        const filtered = email ? passwords.filter(p => (p.userEmail || '').toLowerCase() === email) : []
-        setPasswordArray(filtered)
+        try {
+            setIsLoading(true)
+            if (!token) { setPasswordArray([]); return }
+            let req = await fetch(`${API}/`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            })
+            if (req.status === 401) {
+                toast.error('Session expired. Please log in again.', { autoClose: 3000 })
+                setPasswordArray([])
+                return
+            }
+            if (!req.ok) throw new Error('Failed to fetch')
+            let passwords = await req.json()
+            setPasswordArray(passwords)
+        } catch (e) {
+            toast.error('Could not load passwords. Check your connection.', { autoClose: 3000 })
+        } finally {
+            setIsLoading(false)
+        }
     }
 
     useEffect(() => {
         getPasswords()
-    }, [currentUser])
+    }, [currentUser, token])
 
     useEffect(() => {
         if (searchQuery.trim() === "") {
@@ -66,46 +78,65 @@ const Manager = ({ currentUser, searchQuery }) => {
             return
         }
 
-        if (siteOk && usernameOk && passwordOk) {
-            const newId = uuidv4();
+        const newId = uuidv4();
 
-            if (form.id) {
-                await fetch(`${API}/`, {
-                    method: "DELETE",
-                    headers: { "Content-Type": "application/json", 'x-api-key': API_KEY },
-                    body: JSON.stringify({ id: form.id })
-                });
-            }
+        // POST first — if this fails, the original entry is untouched
+        // userEmail is NOT sent — the server reads it from the verified JWT
+        const res = await fetch(`${API}/`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
+            body: JSON.stringify({ ...form, id: newId })
+        });
 
-            const userEmail = currentUser?.email || ''
-            setPasswordArray([...passwordArray, { ...form, id: newId, userEmail }]);
-
-            await fetch(`${API}/`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json", 'x-api-key': API_KEY },
-                body: JSON.stringify({ ...form, id: newId, userEmail: currentUser?.email || '' })
-            });
-
-            setform({ site: "", username: "", password: "" });
-            toast.success('Password saved!', { autoClose: 2000 });
+        if (!res.ok) {
+            toast.error('Failed to save password. Please try again.', { autoClose: 2000 })
+            return
         }
+
+        // POST succeeded — now safe to delete the old entry
+        if (form.id) {
+            const delRes = await fetch(`${API}/`, {
+                method: "DELETE",
+                headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify({ id: form.id })
+            });
+            if (!delRes.ok) {
+                // New entry was saved but old one wasn't removed — both exist now.
+                // Re-fetch so the user sees the duplicate and can delete manually.
+                await getPasswords();
+                toast.warn('Saved, but the old entry could not be removed. Please delete the duplicate.', { autoClose: 5000 })
+                setform({ site: "", username: "", password: "" });
+                return
+            }
+        }
+
+        await getPasswords();
+        setform({ site: "", username: "", password: "" });
+        toast.success('Password saved!', { autoClose: 2000 });
     };
 
     const deletePassword = async (id) => {
         if (confirm("Do you really want to delete this password?")) {
+            const previous = passwordArray
             setPasswordArray(passwordArray.filter(item => item.id !== id));
-            await fetch(`${API}/`, {
-                method: "DELETE",
-                headers: { "Content-Type": "application/json", 'x-api-key': API_KEY },
-                body: JSON.stringify({ id })
-            });
-            toast.info('Password Deleted!', { autoClose: 2000 });
+            try {
+                const res = await fetch(`${API}/`, {
+                    method: "DELETE",
+                    headers: { "Content-Type": "application/json", 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify({ id })
+                });
+                if (!res.ok) throw new Error('Delete failed')
+                toast.info('Password Deleted!', { autoClose: 2000 });
+            } catch (e) {
+                setPasswordArray(previous)
+                toast.error('Failed to delete password. Please try again.', { autoClose: 2000 })
+            }
         }
     }
 
     const editPassword = (id) => {
-        setform({ ...passwordArray.filter(i => i.id === id)[0], id: id })
-        setPasswordArray(passwordArray.filter(item => item.id !== id))
+        const entry = passwordArray.find(i => i.id === id)
+        if (entry) setform({ ...entry, id: entry.id })
     }
 
     const handleChange = (e) => {
@@ -149,8 +180,9 @@ const Manager = ({ currentUser, searchQuery }) => {
 
                 <div className="passwords w-full px-2 md:px-0">
                     <h2 className='font-bold text-xl md:text-2xl py-4 text-white'>Your Passwords</h2>
-                    {filteredPasswords.length === 0 && passwordArray.length === 0 && <div className='text-white text-sm md:text-base'> No passwords to show</div>}
-                    {filteredPasswords.length === 0 && passwordArray.length > 0 && searchQuery.trim() !== "" && <div className='text-white text-sm md:text-base'> No passwords match your search</div>}
+                    {isLoading && <div className='text-white text-sm md:text-base'>Loading passwords…</div>}
+                    {!isLoading && filteredPasswords.length === 0 && passwordArray.length === 0 && <div className='text-white text-sm md:text-base'> No passwords to show</div>}
+                    {!isLoading && filteredPasswords.length === 0 && passwordArray.length > 0 && searchQuery.trim() !== "" && <div className='text-white text-sm md:text-base'> No passwords match your search</div>}
                     {filteredPasswords.length != 0 &&
                         <>
                             <div className='w-full overflow-x-auto rounded-md ring-1 ring-green-300/40 mb-10 bg-green-50'>
