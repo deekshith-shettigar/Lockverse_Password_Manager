@@ -17,7 +17,7 @@ LockVerse is a full-stack password management application that helps you securel
 - ✏️ **Edit & Delete** — Full CRUD for saved passwords
 - 🎨 **Responsive Design** — Works on desktop, tablet, and mobile
 - 🌐 **Landing Page** — Professional landing page with Home, About, and Contact sections
-- 📬 **Contact Form** — Messages sent directly to owner's inbox via Nodemailer
+- 📬 **Contact Form** — Messages sent directly to owner's inbox via Resend
 - 🎯 **User-Scoped Data** — Each user sees only their own passwords, enforced server-side
 
 ---
@@ -53,7 +53,7 @@ LockVerse is a full-stack password management application that helps you securel
 - **bcryptjs** — User password hashing
 - **jsonwebtoken** — JWT auth
 - **crypto (AES-256-CBC)** — Vault password encryption
-- **nodemailer** — Email sending (verification, OTP, contact form)
+- **Resend** — Transactional email (verification, OTP, contact form)
 - **express-rate-limit** — Brute-force protection
 
 ### Deployment
@@ -67,7 +67,7 @@ LockVerse is a full-stack password management application that helps you securel
 
 - [Node.js](https://nodejs.org/) v14 or higher
 - [MongoDB Atlas](https://www.mongodb.com/atlas) account
-- Gmail account with an [App Password](https://myaccount.google.com/apppasswords) enabled
+- [Resend](https://resend.com) account (free — 3,000 emails/month)
 
 ---
 
@@ -76,7 +76,7 @@ LockVerse is a full-stack password management application that helps you securel
 ### 1. Clone the repository
 ```bash
 git clone https://github.com/deekshith-shettigar/Lockverse_Password_Manager.git
-cd Lockverse_Password_Manager/passop-mongo
+cd Lockverse_Password_Manager
 ```
 
 ### 2. Install frontend dependencies
@@ -99,7 +99,7 @@ DB_NAME=your_database_name
 VAULT_SECRET=your_64_hex_character_secret_key
 API_KEY=your_secret_api_key
 EMAIL_USER=you@gmail.com
-EMAIL_PASS=your_gmail_app_password
+RESEND_API_KEY=re_your_resend_api_key
 JWT_SECRET=your_128_hex_character_jwt_secret
 FRONTEND_URL=http://localhost:5173
 ```
@@ -137,7 +137,7 @@ Open `http://localhost:5173` in your browser.
 ## 📂 Project Structure
 
 ```
-passop-mongo/
+/
 ├── backend/
 │   ├── server.js              # Express server, all API routes
 │   ├── package.json           # Backend dependencies
@@ -207,28 +207,33 @@ passop-mongo/
 ## 🚀 Deploying to Render
 
 ### Backend (Web Service)
+- **Root Directory:** `backend`
+- **Build Command:** `npm install`
+- **Start Command:** `node server.js`
+
 Set these environment variables in Render → your backend service → **Environment**:
 
 ```
-MONGO_URI
-DB_NAME
-VAULT_SECRET
-API_KEY
-EMAIL_USER
-EMAIL_PASS
-JWT_SECRET
-FRONTEND_URL=https://your-frontend.onrender.com
+MONGO_URI        = your_mongodb_atlas_connection_string
+DB_NAME          = passop
+VAULT_SECRET     = your_64_hex_secret
+API_KEY          = your_api_key
+EMAIL_USER       = you@gmail.com
+RESEND_API_KEY   = re_your_resend_api_key
+JWT_SECRET       = your_128_hex_secret
+FRONTEND_URL     = https://your-frontend.onrender.com
 ```
 
 ### Frontend (Static Site)
+- **Root Directory:** *(leave blank)*
+- **Build Command:** `npm install && npm run build`
+- **Publish Directory:** `dist`
+
 Set this environment variable in Render → your frontend service → **Environment**:
 
 ```
-VITE_BACKEND_URL=https://your-backend.onrender.com
+VITE_BACKEND_URL = https://your-backend.onrender.com
 ```
-
-**Build command:** `npm run build`  
-**Publish directory:** `dist`
 
 ---
 

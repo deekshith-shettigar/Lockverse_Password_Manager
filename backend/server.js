@@ -7,11 +7,12 @@ const bodyparser = require('body-parser')
 const cors = require('cors')
 const bcrypt = require('bcryptjs')
 const crypto = require('crypto')
-const nodemailer = require('nodemailer')
+const { Resend } = require('resend')
 const jwt = require('jsonwebtoken')
 const rateLimit = require('express-rate-limit')
 
 const VAULT_KEY = Buffer.from(process.env.VAULT_SECRET, 'hex')
+const resend = new Resend(process.env.RESEND_API_KEY)
 
 function encryptVaultPassword(plainText) {
     const iv = crypto.randomBytes(16)
@@ -29,19 +30,7 @@ function decryptVaultPassword(stored) {
     return decrypted.toString('utf8')
 }
 
-// ─── Nodemailer transporter ───────────────────────────────────────────────────
-const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS   // Gmail App Password (not your account password)
-    }
-})
-
-// ─── Rate limiters ───────────────────────────────────────────────────────────
-// Login: 10 attempts per 15 minutes per IP.
-// Send-OTP: 5 attempts per 15 minutes per IP (separate from the per-email
-//           rate limit already inside the route, which is 1/minute).
+// ─── Rate limiters ────────────────────────────────────────────────────────────
 const loginLimiter = rateLimit({
     windowMs: 15 * 60 * 1000,
     max: 10,
@@ -58,12 +47,9 @@ const otpLimiter = rateLimit({
     message: { success: false, message: 'Too many OTP requests. Please try again in 15 minutes.' }
 })
 
-// ─── OTP helpers (MongoDB-backed, survives server restarts) ──────────────────
-// A TTL index on expiresAt lets MongoDB auto-delete expired documents.
-// ensureOtpIndex() is called once at startup before the server begins listening.
-
-const OTP_EXPIRY_MS = 10 * 60 * 1000   // 10 minutes
-const OTP_RATE_LIMIT_MS = 60 * 1000    // 1 resend per minute
+// ─── OTP helpers ──────────────────────────────────────────────────────────────
+const OTP_EXPIRY_MS = 10 * 60 * 1000
+const OTP_RATE_LIMIT_MS = 60 * 1000
 
 async function ensureOtpIndex() {
     const col = client.db(dbName).collection('otps')
@@ -72,13 +58,11 @@ async function ensureOtpIndex() {
 
 async function ensureEmailVerificationIndex() {
     const col = client.db(dbName).collection('email_verifications')
-    // Auto-delete unverified tokens after 24 hours
     await col.createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0, name: 'ttl_email_verify' })
 }
 
 async function setOtp(email, record) {
     const col = client.db(dbName).collection('otps')
-    // expiresAt must be a real Date object for the TTL index to act on it
     await col.replaceOne(
         { email },
         { email, ...record, expiresAt: new Date(record.expiresAt) },
@@ -96,18 +80,7 @@ async function deleteOtp(email) {
     await col.deleteOne({ email })
 }
 
-// ─── API Key middleware (kept for any future server-to-server use) ────────────
-const checkApiKey = (req, res, next) => {
-    const apiKey = req.headers['x-api-key']
-    if (apiKey !== process.env.API_KEY) {
-        return res.status(403).json({ error: 'Forbidden' })
-    }
-    next()
-}
-
-// ─── JWT middleware — protects vault routes ───────────────────────────────────
-// Reads Authorization: Bearer <token>, verifies signature, puts the
-// decoded payload on req.user so routes can trust req.user.email.
+// ─── JWT middleware ───────────────────────────────────────────────────────────
 const verifyToken = (req, res, next) => {
     const authHeader = req.headers['authorization']
     const token = authHeader && authHeader.startsWith('Bearer ')
@@ -134,11 +107,11 @@ const port = process.env.PORT || 3000
 app.use(bodyparser.json())
 app.use(cors())
 
-// ─── Password vault routes (protected by API key) ────────────────────────────
+// ─── Password vault routes ────────────────────────────────────────────────────
 
 app.get('/', verifyToken, async (req, res) => {
     try {
-        const userEmail = req.user.email   // trusted — came from signed JWT
+        const userEmail = req.user.email
         const db = client.db(dbName);
         const collection = db.collection('passwords');
         const findResult = await collection.find({ userEmail }).toArray();
@@ -159,7 +132,7 @@ app.get('/', verifyToken, async (req, res) => {
 app.post('/', verifyToken, async (req, res) => {
     try {
         const { password, ...rest } = req.body
-        const userEmail = req.user.email   // trusted — came from signed JWT
+        const userEmail = req.user.email
         const encryptedPassword = encryptVaultPassword(password)
         const db = client.db(dbName);
         const collection = db.collection('passwords');
@@ -174,10 +147,9 @@ app.post('/', verifyToken, async (req, res) => {
 app.delete('/', verifyToken, async (req, res) => {
     try {
         const { id } = req.body;
-        const userEmail = req.user.email   // trusted — came from signed JWT
+        const userEmail = req.user.email
         const db = client.db(dbName);
         const collection = db.collection('passwords');
-        // userEmail filter ensures a user can only delete their own entries
         const result = await collection.deleteOne({ id, userEmail });
         res.send({ success: true, result });
     } catch (e) {
@@ -198,7 +170,6 @@ app.post('/login', loginLimiter, async (req, res) => {
         const collection = db.collection('signup_page_details');
         const emailTrimmed = String(email).trim().toLowerCase()
         const user = await collection.findOne({ email: emailTrimmed })
-        // Deliberately vague — don't reveal whether the email exists or the password is wrong
         const GENERIC = 'Incorrect email or password'
         if (!user) {
             return res.status(401).send({ success: false, message: GENERIC })
@@ -207,14 +178,9 @@ app.post('/login', loginLimiter, async (req, res) => {
         if (!passwordMatch) {
             return res.status(401).send({ success: false, message: GENERIC })
         }
-        // Legacy accounts created before email verification was added
-        // have no emailVerified field at all (undefined). Auto-verify them
-        // so existing users aren't locked out — only block accounts that
-        // explicitly signed up after the feature and never clicked the link.
         if (user.emailVerified === false) {
             return res.status(403).send({ success: false, message: 'Please verify your email before logging in. Check your inbox for the verification link.' })
         }
-        // If emailVerified is undefined (legacy account), mark it verified now
         if (user.emailVerified === undefined) {
             await collection.updateOne({ email: emailTrimmed }, { $set: { emailVerified: true } })
         }
@@ -244,12 +210,10 @@ app.post('/signup', async (req, res) => {
         if (existing && existing.emailVerified) {
             return res.status(409).send({ success: false, message: 'Email already registered' })
         }
-        // If account exists but is unverified, delete it so the user can re-register
         if (existing && !existing.emailVerified) {
             await users.deleteOne({ email: emailTrimmed })
         }
 
-        // Server-side password strength check — mirrors frontend validation
         const pwErrors = []
         if (password.length < 6) pwErrors.push('at least 6 characters')
         if (!/[A-Za-z]/.test(password)) pwErrors.push('at least one letter')
@@ -268,7 +232,6 @@ app.post('/signup', async (req, res) => {
             createdAt: new Date()
         })
 
-        // Generate a secure verification token and store it with a 24-hour TTL
         const verifyToken = crypto.randomBytes(32).toString('hex')
         const verifications = db.collection('email_verifications')
         await verifications.replaceOne(
@@ -279,11 +242,9 @@ app.post('/signup', async (req, res) => {
 
         const verifyUrl = `${process.env.FRONTEND_URL}/verify-email?token=${verifyToken}`
 
-        // Send verification email — if this fails, the account is still created.
-        // Log the error and return success so the user isn't blocked by mail issues.
         try {
-            await transporter.sendMail({
-                from: `"LockVerse" <${process.env.EMAIL_USER}>`,
+            await resend.emails.send({
+                from: 'LockVerse <onboarding@resend.dev>',
                 to: emailTrimmed,
                 subject: 'LockVerse – Verify your email address',
                 html: `
@@ -296,9 +257,10 @@ app.post('/signup', async (req, res) => {
                     </div>
                 `
             })
+            console.log('Verification email sent to:', emailTrimmed)
         } catch (mailErr) {
             console.error('Verification email failed to send:', mailErr.message)
-            console.error('Verify URL (use this to verify manually during dev):', verifyUrl)
+            console.error('Verify URL (manual fallback):', verifyUrl)
         }
 
         res.send({ success: true, message: 'Account created. Please check your email to verify your account.' })
@@ -327,7 +289,6 @@ app.get('/verify-email', async (req, res) => {
             return res.status(400).json({ success: false, message: 'Verification link has expired. Please sign up again.' })
         }
 
-        // Mark the user as verified and clean up the token
         const users = db.collection('signup_page_details')
         await users.updateOne({ email: record.email }, { $set: { emailVerified: true, verifiedAt: new Date() } })
         await verifications.deleteOne({ token })
@@ -339,15 +300,15 @@ app.get('/verify-email', async (req, res) => {
     }
 })
 
-// ─── Contact form ────────────────────────────────────────────────────────────
+// ─── Contact form ─────────────────────────────────────────────────────────────
 app.post('/contact', async (req, res) => {
     try {
         const { name, email, subject, message } = req.body || {}
         if (!name || !email || !subject || !message) {
             return res.status(400).json({ success: false, message: 'All fields are required' })
         }
-        await transporter.sendMail({
-            from: `"LockVerse Contact" <${process.env.EMAIL_USER}>`,
+        await resend.emails.send({
+            from: 'LockVerse <onboarding@resend.dev>',
             to: process.env.EMAIL_USER,
             replyTo: email,
             subject: subject,
@@ -376,7 +337,6 @@ app.post('/contact', async (req, res) => {
 
 // ─── OTP-based forgot password ────────────────────────────────────────────────
 
-// STEP 1: Send OTP to email
 app.post('/forgot-password/send-otp', otpLimiter, async (req, res) => {
     try {
         const { email } = req.body || {}
@@ -385,29 +345,24 @@ app.post('/forgot-password/send-otp', otpLimiter, async (req, res) => {
         }
         const emailTrimmed = String(email).trim().toLowerCase()
 
-        // Look up the account but don't reveal whether it exists
         const db = client.db(dbName)
         const collection = db.collection('signup_page_details')
         const user = await collection.findOne({ email: emailTrimmed })
 
-        // Only generate and send OTP if the account exists.
-        // The response is identical either way — this prevents email enumeration.
         if (user) {
-            // Rate-limit: prevent OTP spam
             const existing = await getOtp(emailTrimmed)
             if (existing && Date.now() - existing.sentAt < OTP_RATE_LIMIT_MS) {
                 const wait = Math.ceil((OTP_RATE_LIMIT_MS - (Date.now() - existing.sentAt)) / 1000)
                 return res.status(429).send({ success: false, message: `Please wait ${wait}s before requesting another OTP` })
             }
 
-            // Generate 6-digit OTP
             const otp = String(Math.floor(100000 + Math.random() * 900000))
             const expiresAt = Date.now() + OTP_EXPIRY_MS
 
             await setOtp(emailTrimmed, { otp, expiresAt, sentAt: Date.now(), verified: false })
 
-            await transporter.sendMail({
-                from: `"LockVerse" <${process.env.EMAIL_USER}>`,
+            await resend.emails.send({
+                from: 'LockVerse <onboarding@resend.dev>',
                 to: emailTrimmed,
                 subject: 'LockVerse – Your Password Reset OTP',
                 html: `
@@ -423,7 +378,6 @@ app.post('/forgot-password/send-otp', otpLimiter, async (req, res) => {
             })
         }
 
-        // Always return 200 with the same message — never reveal whether the email exists
         res.send({ success: true, message: "If that email is registered, you'll receive an OTP shortly." })
     } catch (e) {
         console.error('Send OTP error', e)
@@ -431,7 +385,6 @@ app.post('/forgot-password/send-otp', otpLimiter, async (req, res) => {
     }
 })
 
-// STEP 2: Verify OTP
 app.post('/forgot-password/verify-otp', async (req, res) => {
     try {
         const { email, otp } = req.body || {}
@@ -452,7 +405,6 @@ app.post('/forgot-password/verify-otp', async (req, res) => {
             return res.status(400).send({ success: false, message: 'Incorrect OTP. Please try again.' })
         }
 
-        // Mark as verified so reset step can proceed
         await setOtp(emailTrimmed, { ...record, verified: true, expiresAt: new Date(record.expiresAt).getTime() })
 
         res.send({ success: true, message: 'OTP verified' })
@@ -462,7 +414,6 @@ app.post('/forgot-password/verify-otp', async (req, res) => {
     }
 })
 
-// STEP 3: Reset password (requires verified OTP in store)
 app.post('/forgot-password', async (req, res) => {
     try {
         const { email, password } = req.body || {}
@@ -487,7 +438,6 @@ app.post('/forgot-password', async (req, res) => {
             return res.status(404).send({ success: false, message: 'Email not found' })
         }
 
-        // Same rules as signup — reject weak passwords even on reset
         const pwErrors = []
         if (password.length < 6) pwErrors.push('at least 6 characters')
         if (!/[A-Za-z]/.test(password)) pwErrors.push('at least one letter')
@@ -503,7 +453,6 @@ app.post('/forgot-password', async (req, res) => {
             { $set: { password: hashedPassword, updatedAt: new Date() } }
         )
 
-        // Clear the OTP record so it cannot be reused
         await deleteOtp(emailTrimmed)
 
         res.send({ success: true, message: 'Password reset successfully' })
