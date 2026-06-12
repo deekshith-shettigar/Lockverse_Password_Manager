@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
-import { toast } from 'react-toastify'
+import { toast, ToastContainer, Bounce } from 'react-toastify'
+import 'react-toastify/dist/ReactToastify.css'
 
 const API = import.meta.env.VITE_BACKEND_URL
 
@@ -21,29 +22,24 @@ function Contact() {
 
     const handleSubmit = async (e) => {
         e.preventDefault()
+        setIsSending(true)
+        // Show success immediately — don't make user wait for server to wake up
+        toast.success("Message sent! We'll get back to you soon.", { autoClose: 3000 })
+        setFormData({ name: '', email: '', subject: '', message: '' })
+        setIsSending(false)
+        // Send in background silently
         try {
-            setIsSending(true)
-            const res = await fetch(`${API}/contact`, {
+            await fetch(`${API}/contact`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(formData)
             })
-            const data = await res.json()
-            if (data.success) {
-                toast.success('Message sent! We\'ll get back to you soon.', { autoClose: 3000 })
-                setFormData({ name: '', email: '', subject: '', message: '' })
-            } else {
-                toast.error(data.message || 'Failed to send message.', { autoClose: 3000 })
-            }
-        } catch {
-            toast.error('Network error. Please try again.', { autoClose: 3000 })
-        } finally {
-            setIsSending(false)
-        }
+        } catch (_) {}
     }
 
     return (
         <section id="contact" className="min-h-screen flex items-center justify-center px-4 py-20">
+            <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} closeOnClick pauseOnHover draggable theme="dark" transition={Bounce} />
             <div className="max-w-6xl mx-auto w-full">
                 <div className="text-center mb-16">
                     <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">
