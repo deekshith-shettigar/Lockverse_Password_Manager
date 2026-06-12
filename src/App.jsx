@@ -49,7 +49,6 @@ function App() {
     setCurrentUser(user || null)
     setToken(tok || null)
     setIsAuthenticated(true)
-    // Persist current user session
     try {
       if (user) localStorage.setItem('lv_current_user', JSON.stringify(user))
       if (tok)  localStorage.setItem('lv_token', tok)
@@ -92,9 +91,12 @@ function App() {
       const data = await res.json()
       setVerifyResult({ success: data.success, message: data.message })
       setAuthView('verified')
+      // Clean the URL — no more /verify-email showing in address bar
+      window.history.replaceState({}, '', '/')
     } catch {
       setVerifyResult({ success: false, message: 'Network error. Please try again.' })
       setAuthView('verified')
+      window.history.replaceState({}, '', '/')
     }
   }
 
@@ -119,7 +121,7 @@ function App() {
     const emailToken = params.get('token')
     if (emailToken) {
       // Clean the token from the URL immediately
-      window.history.replaceState({}, '', window.location.pathname)
+      window.history.replaceState({}, '', '/')
       handleVerifyEmail(emailToken)
       return
     }
@@ -128,13 +130,9 @@ function App() {
     const isNewSession = !sessionStorage.getItem('lv_page_loaded')
     
     if (isNewSession) {
-      // Mark that page has been loaded in this session
       sessionStorage.setItem('lv_page_loaded', 'true')
-      
-      // Clear user login data on new browser session
       localStorage.removeItem('lv_current_user')
       
-      // Check if user was on login/signup/forgot page - preserve it
       const savedView = localStorage.getItem('lv_auth_view')
       if (savedView === 'login' || savedView === 'signup' || savedView === 'forgot') {
         setAuthView(savedView)
@@ -143,7 +141,6 @@ function App() {
         return
       }
       
-      // Otherwise show landing page
       localStorage.removeItem('lv_auth_view')
       setAuthView('landing')
       setIsAuthenticated(false)
@@ -156,8 +153,6 @@ function App() {
       const rawUser = localStorage.getItem('lv_current_user')
       const savedToken = localStorage.getItem('lv_token')
       if (rawUser && savedToken) {
-        // Decode the JWT payload (no crypto — just check expiry client-side as UX guard;
-        // the server re-verifies the signature on every request regardless)
         const payload = JSON.parse(atob(savedToken.split('.')[1]))
         const expired = payload.exp && Date.now() / 1000 > payload.exp
         if (!expired) {
@@ -169,7 +164,6 @@ function App() {
             return
           }
         }
-        // Token expired — clear everything and fall through to landing
         localStorage.removeItem('lv_current_user')
         localStorage.removeItem('lv_token')
       }
@@ -178,7 +172,6 @@ function App() {
       localStorage.removeItem('lv_token')
     }
 
-    // Restore auth view (login/signup/forgot) if user was on those pages
     try {
       const savedView = localStorage.getItem('lv_auth_view')
       if (savedView === 'login' || savedView === 'signup' || savedView === 'forgot') {
@@ -187,7 +180,6 @@ function App() {
       }
     } catch (_) {}
 
-    // Default: landing page
     setAuthView('landing')
   }, [])
 
@@ -197,8 +189,6 @@ function App() {
       try { localStorage.setItem('lv_auth_view', authView) } catch (_) {}
     }
   }, [authView, isAuthenticated])
-
-
 
   return (
     <>
