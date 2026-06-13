@@ -18,7 +18,7 @@ function About() {
                         <div className="bg-white/5 backdrop-blur-md p-6 rounded-xl border border-white/10">
                             <h3 className="text-2xl font-bold text-white mb-3">Our Mission</h3>
                             <p className="text-gray-400 leading-relaxed">
-                                LockVerse was created with a simple yet powerful mission: to make password management effortless, organized, and secure for everyone. In today's digital world, we log into countless websites, games, and applications each requiring unique usernames and passwords, and remembering all of them can be difficult and overwhelming. LockVerse solves this problem by providing a safe and user-friendly space to securely store and manage all your login information in one place. We believe that protecting your online identity shouldn't be complicated with LockVerse, you can enjoy security, simplicity, and convenience while focusing on what truly matters.
+                                LockVerse was built to solve a real problem — too many passwords, too easy to forget them, and too risky to reuse them. It's a full-stack personal password manager where you sign up once, verify your email, and get a private encrypted vault to store all your website credentials. Every entry is tied to your account only, protected by bcrypt hashing and secure server-side sessions. Whether you're managing logins for work, social media, or banking, LockVerse keeps them organised, accessible, and safe — all in one place.
                             </p>
                         </div>
 
@@ -26,24 +26,24 @@ function About() {
                             <h3 className="text-2xl font-bold text-white mb-3">Why Choose Us?</h3>
                             <ul className="space-y-3 text-gray-400">
                                 <li className="flex items-start">
-                                    <span className="text-2xl mr-3">🖥️</span>
-                                    <span><strong className="text-white">User-Friendly Interface:</strong> LockVerse offers a clean and simple design that makes it easy to store, view, and manage all your login details.</span>
+                                    <span className="text-2xl mr-3">🔐</span>
+                                    <span><strong className="text-white">bcrypt Password Hashing:</strong> Your master password is never saved in plain text — it's hashed before storage so only you know it.</span>
                                 </li>
                                 <li className="flex items-start">
-                                    <span className="text-2xl mr-3">🌐</span>
-                                    <span><strong className="text-white">Cross-Platform Access:</strong> Access your saved usernames and passwords from anywhere, anytime.</span>
+                                    <span className="text-2xl mr-3">✉️</span>
+                                    <span><strong className="text-white">Email Verification:</strong> Every new account is verified before access is granted, keeping your vault protected from the start.</span>
                                 </li>
                                 <li className="flex items-start">
-                                    <span className="text-2xl mr-3">💾</span>
-                                    <span><strong className="text-white">Reliable Storage:</strong> All your website URLs, usernames, and passwords are safely stored in a secure database using MongoDB.</span>
+                                    <span className="text-2xl mr-3">🔑</span>
+                                    <span><strong className="text-white">OTP-Based Password Reset:</strong> Forgot your password? A time-limited code is sent to your email — no security questions, no guesswork.</span>
+                                </li>
+                                <li className="flex items-start">
+                                    <span className="text-2xl mr-3">🛡️</span>
+                                    <span><strong className="text-white">Private Vault:</strong> Your saved credentials are strictly tied to your account — no one else can ever view or access your entries.</span>
                                 </li>
                                 <li className="flex items-start">
                                     <span className="text-2xl mr-3">⚡</span>
-                                    <span><strong className="text-white">Fast and Efficient:</strong> Built with React and Node.js, LockVerse provides a smooth and responsive experience.</span>
-                                </li>
-                                <li className="flex items-start">
-                                    <span className="text-2xl mr-3">🗂️</span>
-                                    <span><strong className="text-white">Organized Management:</strong> Keep all your login information neatly organized in one place, so you never lose track of your credentials again.</span>
+                                    <span><strong className="text-white">Fast & Responsive:</strong> Snappy on every device — whether you're on desktop or mobile, LockVerse feels smooth and instant.</span>
                                 </li>
                             </ul>
                         </div>
@@ -59,24 +59,23 @@ function About() {
                                 </div>
                                 <h3 className="text-3xl font-bold text-white mb-4">Security You Can Trust</h3>
                                 <p className="text-gray-300 text-lg leading-relaxed">
-                                    Built with the latest security standards and continuously updated to protect against 
-                                    emerging threats. Your digital life deserves nothing less than the best protection.
+                                    Your master password is hashed with <strong className="text-orange-400">bcrypt</strong> and never stored in plain text. Sessions are managed server-side so your vault is always scoped to your account only — no one else can ever access your data, not even us.
                                 </p>
                             </div>
                         </div>
 
                         <div className="grid grid-cols-2 gap-4">
                             <div className="bg-white/5 backdrop-blur-md p-6 rounded-xl border border-white/10 text-center">
-                                <div className="text-3xl font-bold text-orange-500 mb-2">500+</div>
-                                <div className="text-gray-400">Passwords Stored</div>
+                                <div className="text-3xl font-bold text-orange-500 mb-2">bcrypt</div>
+                                <div className="text-gray-400">Password Hashing</div>
                             </div>
                             <div className="bg-white/5 backdrop-blur-md p-6 rounded-xl border border-white/10 text-center">
-                                <div className="text-3xl font-bold text-orange-500 mb-2">24/7</div>
-                                <div className="text-gray-400">Customer Help</div>
+                                <div className="text-3xl font-bold text-orange-500 mb-2">OTP</div>
+                                <div className="text-gray-400">Secure Password Reset</div>
                             </div>
                             <div className="bg-white/5 backdrop-blur-md p-6 rounded-xl border border-white/10 text-center">
                                 <div className="text-3xl font-bold text-orange-500 mb-2">1-Click</div>
-                                <div className="text-gray-400">Access Logins</div>
+                                <div className="text-gray-400">Copy Credentials</div>
                             </div>
                             <div className="bg-white/5 backdrop-blur-md p-6 rounded-xl border border-white/10 text-center">
                                 <div className="text-3xl font-bold text-orange-500 mb-2">Free</div>

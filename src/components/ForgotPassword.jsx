@@ -193,7 +193,7 @@ function ForgotPassword({ onSwitchToLogin }) {
             const res = await fetch(`${API}/forgot-password`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email: email.trim(), password: form.password })
+                body: JSON.stringify({ email: email.trim(), password: form.password.trim() })
             })
             const data = await res.json()
             if (data.success) {
@@ -285,7 +285,8 @@ function ForgotPassword({ onSwitchToLogin }) {
                                 <input ref={passwordRef} name="password" type="password" value={form.password}
                                     onChange={e => setForm(p => ({ ...p, password: e.target.value }))}
                                     placeholder="Enter new password"
-                                    className="rounded-full border border-green-500 w-full p-4 py-3 bg-white pr-12 text-base" />
+                                    className="rounded-full border border-green-500 w-full p-4 py-3 bg-white pr-12 text-base"
+                                    autoComplete="new-password" autoCorrect="off" autoCapitalize="none" spellCheck="false" />
                                 <span className="absolute right-[4px] top-1/2 -translate-y-1/2 cursor-pointer" onClick={() => togglePasswordVisibility('password')}>
                                     <img ref={eyeImgRef} className="p-1" width={26} src="icons/eyecross.png" alt="toggle" />
                                 </span>
@@ -295,7 +296,8 @@ function ForgotPassword({ onSwitchToLogin }) {
                                 <input ref={confirmPasswordRef} name="confirmPassword" type="password" value={form.confirmPassword}
                                     onChange={e => setForm(p => ({ ...p, confirmPassword: e.target.value }))}
                                     placeholder="Confirm new password"
-                                    className="rounded-full border border-green-500 w-full p-4 py-3 bg-white pr-12 text-base" />
+                                    className="rounded-full border border-green-500 w-full p-4 py-3 bg-white pr-12 text-base"
+                                    autoComplete="new-password" autoCorrect="off" autoCapitalize="none" spellCheck="false" />
                                 <span className="absolute right-[4px] top-1/2 -translate-y-1/2 cursor-pointer" onClick={() => togglePasswordVisibility('confirmPassword')}>
                                     <img ref={confirmEyeImgRef} className="p-1" width={26} src="icons/eyecross.png" alt="toggle" />
                                 </span>

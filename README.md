@@ -4,6 +4,13 @@
 
 LockVerse is a full-stack password management application that helps you securely store and manage all your login credentials in one place. Built with modern web technologies, it provides a clean, intuitive interface with enterprise-grade security features.
 
+## 🌐 Live Demo
+
+- **Frontend:** https://lockverse-frontend.onrender.com
+- **Backend:** https://lockverse-password-manager.onrender.com
+
+---
+
 ## ✨ Features
 
 - 🔒 **Secure Password Storage** — Vault passwords encrypted with AES-256-CBC before storing in MongoDB

@@ -70,7 +70,7 @@ function Signup({ onSuccess, onSwitchToLogin }) {
         try {
             setIsSubmitting(true)
             const emailLower = (form.email || '').trim().toLowerCase()
-            const newUser = { name: form.name, email: emailLower, password: form.password }
+            const newUser = { name: form.name, email: emailLower, password: form.password.trim() }
 
             const res = await fetch(`${API}/signup`, {
                 method: 'POST',
@@ -136,14 +136,14 @@ function Signup({ onSuccess, onSwitchToLogin }) {
                     <input id="email" name="email" type="email" value={form.email} onChange={handleChange} placeholder="you@example.com" className="mb-4 rounded-full border border-green-500 w-full p-4 py-3 bg-white text-base md:text-lg" />
                     <label className="block text-sm font-medium text-slate-700 mb-1" htmlFor="password">Password</label>
                     <div className="relative mb-4">
-                        <input ref={passwordRef} id="password" name="password" type="password" value={form.password} onChange={handleChange} placeholder="Create a password" className="rounded-full border border-green-500 w-full p-4 py-3 bg-white pr-12 text-base md:text-lg" />
+                        <input ref={passwordRef} id="password" name="password" type="password" value={form.password} onChange={handleChange} placeholder="Create a password" className="rounded-full border border-green-500 w-full p-4 py-3 bg-white pr-12 text-base md:text-lg" autoComplete="new-password" autoCorrect="off" autoCapitalize="none" spellCheck="false" />
                         <span className='absolute right-[4px] top-1/2 transform -translate-y-1/2 cursor-pointer' onClick={() => toggleVisibility(passwordRef, eyePwdRef)}>
                             <img ref={eyePwdRef} className='p-1' width={26} src="icons/eyecross.png" alt="toggle password visibility" />
                         </span>
                     </div>
                     <label className="block text-sm font-medium text-slate-700 mb-1" htmlFor="confirm">Confirm Password</label>
                     <div className="relative mb-6">
-                        <input ref={confirmRef} id="confirm" name="confirm" type="password" value={form.confirm} onChange={handleChange} placeholder="Re-enter your password" className="rounded-full border border-green-500 w-full p-4 py-3 bg-white pr-12 text-base md:text-lg" />
+                        <input ref={confirmRef} id="confirm" name="confirm" type="password" value={form.confirm} onChange={handleChange} placeholder="Re-enter your password" className="rounded-full border border-green-500 w-full p-4 py-3 bg-white pr-12 text-base md:text-lg" autoComplete="new-password" autoCorrect="off" autoCapitalize="none" spellCheck="false" />
                         <span className='absolute right-[4px] top-1/2 transform -translate-y-1/2 cursor-pointer' onClick={() => toggleVisibility(confirmRef, eyeCfmRef)}>
                             <img ref={eyeCfmRef} className='p-1' width={26} src="icons/eyecross.png" alt="toggle confirm password visibility" />
                         </span>

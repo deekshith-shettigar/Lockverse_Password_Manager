@@ -53,7 +53,7 @@ function Login({ onSuccess, onSwitchToSignup, onSwitchToForgot }) {
             const response = await fetch(`${API}/login`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email: form.email.trim().toLowerCase(), password: form.password })
+                body: JSON.stringify({ email: form.email.trim().toLowerCase(), password: form.password.trim() })
             })
             const data = await response.json()
             if (data.success && data.user && data.token) {
@@ -92,7 +92,7 @@ function Login({ onSuccess, onSwitchToSignup, onSwitchToForgot }) {
                     <input id="email" name="email" type="email" value={form.email} onChange={handleChange} placeholder="you@example.com" className="mb-4 rounded-full border border-green-500 w-full p-4 py-3 bg-white text-base md:text-lg" />
                     <label className="block text-sm font-medium text-slate-700 mb-1" htmlFor="password">Password</label>
                     <div className="relative mb-6">
-                        <input ref={passwordRef} id="password" name="password" type="password" value={form.password} onChange={handleChange} placeholder="Your password" className="rounded-full border border-green-500 w-full p-4 py-3 bg-white pr-12 text-base md:text-lg" />
+                        <input ref={passwordRef} id="password" name="password" type="password" value={form.password} onChange={handleChange} placeholder="Your password" className="rounded-full border border-green-500 w-full p-4 py-3 bg-white pr-12 text-base md:text-lg" autoComplete="current-password" autoCorrect="off" autoCapitalize="none" spellCheck="false" />
                         <span className='absolute right-[4px] top-1/2 transform -translate-y-1/2 cursor-pointer' onClick={togglePasswordVisibility}>
                             <img ref={eyeImgRef} className='p-1' width={26} src="icons/eyecross.png" alt="toggle password visibility" />
                         </span>
