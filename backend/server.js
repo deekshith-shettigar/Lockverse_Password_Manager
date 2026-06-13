@@ -12,12 +12,13 @@ const jwt = require('jsonwebtoken')
 const rateLimit = require('express-rate-limit')
 
 const VAULT_KEY = Buffer.from(process.env.VAULT_SECRET, 'hex')
-
 const transporter = nodemailer.createTransport({
-    service: 'gmail',
+    host: 'smtp-relay.brevo.com',
+    port: 587,
+    secure: false,
     auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS
+        user: process.env.BREVO_SMTP_USER,
+        pass: process.env.BREVO_SMTP_PASS
     }
 })
 
@@ -251,7 +252,7 @@ app.post('/signup', async (req, res) => {
 
         try {
             await transporter.sendMail({
-                from: `LockVerse <${process.env.EMAIL_USER}>`,
+                from: `LockVerse <${process.env.BREVO_SMTP_USER}>`,
                 to: emailTrimmed,
                 subject: 'LockVerse – Verify your email address',
                 html: `
@@ -315,7 +316,7 @@ app.post('/contact', async (req, res) => {
             return res.status(400).json({ success: false, message: 'All fields are required' })
         }
         await transporter.sendMail({
-            from: `LockVerse <${process.env.EMAIL_USER}>`,
+            from: `LockVerse <${process.env.BREVO_SMTP_USER}>`,
             to: process.env.EMAIL_USER,
             replyTo: email,
             subject: subject,
@@ -369,7 +370,7 @@ app.post('/forgot-password/send-otp', otpLimiter, async (req, res) => {
             await setOtp(emailTrimmed, { otp, expiresAt, sentAt: Date.now(), verified: false })
 
             await transporter.sendMail({
-                from: `LockVerse <${process.env.EMAIL_USER}>`,
+                from: `LockVerse <${process.env.BREVO_SMTP_USER}>`,
                 to: emailTrimmed,
                 subject: 'LockVerse – Your Password Reset OTP',
                 html: `

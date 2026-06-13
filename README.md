@@ -24,7 +24,7 @@ LockVerse is a full-stack password management application that helps you securel
 - ✏️ **Edit & Delete** — Full CRUD for saved passwords
 - 🎨 **Responsive Design** — Works on desktop, tablet, and mobile
 - 🌐 **Landing Page** — Professional landing page with Home, About, and Contact sections
-- 📬 **Contact Form** — Messages sent directly to owner's inbox via Nodemailer + Gmail
+- 📬 **Contact Form** — Messages sent directly to owner's inbox via Brevo SMTP
 - 🎯 **User-Scoped Data** — Each user sees only their own passwords, enforced server-side
 
 ---
@@ -60,7 +60,7 @@ LockVerse is a full-stack password management application that helps you securel
 - **bcryptjs** — User password hashing
 - **jsonwebtoken** — JWT auth
 - **crypto (AES-256-CBC)** — Vault password encryption
-- **Nodemailer + Gmail** — Transactional email (verification, OTP, contact form)
+- **Nodemailer + Brevo SMTP** — Transactional email (verification, OTP, contact form)
 - **express-rate-limit** — Brute-force protection
 
 ### Deployment
@@ -74,7 +74,7 @@ LockVerse is a full-stack password management application that helps you securel
 
 - [Node.js](https://nodejs.org/) v14 or higher
 - [MongoDB Atlas](https://www.mongodb.com/atlas) account
-- A Gmail account with [2-Step Verification](https://myaccount.google.com/security) enabled and an [App Password](https://myaccount.google.com/apppasswords) generated
+- [Brevo](https://brevo.com) account (free — 300 emails/day) for transactional email
 
 ---
 
@@ -106,13 +106,14 @@ DB_NAME=your_database_name
 VAULT_SECRET=your_64_hex_character_secret_key
 API_KEY=your_secret_api_key
 EMAIL_USER=you@gmail.com
-EMAIL_PASS=your_gmail_app_password
+BREVO_SMTP_USER=your_brevo_smtp_login
+BREVO_SMTP_PASS=your_brevo_smtp_password
 JWT_SECRET=your_128_hex_character_jwt_secret
 FRONTEND_URL=http://localhost:5173
 ```
 
-> ⚠️ `EMAIL_PASS` must be a **Gmail App Password**, not your regular Gmail password.
-> Generate one at [myaccount.google.com/apppasswords](https://myaccount.google.com/apppasswords) (requires 2-Step Verification to be ON).
+> ⚠️ `BREVO_SMTP_USER` and `BREVO_SMTP_PASS` come from **Brevo → Transactional → Email → SMTP Settings**.
+> Sign up free at [brevo.com](https://brevo.com) to get them.
 
 **`.env` (frontend root)**
 ```env
@@ -224,14 +225,15 @@ Open `http://localhost:5173` in your browser.
 Set these environment variables in Render → your backend service → **Environment**:
 
 ```
-MONGO_URI        = your_mongodb_atlas_connection_string
-DB_NAME          = passop
-VAULT_SECRET     = your_64_hex_secret
-API_KEY          = your_api_key
-EMAIL_USER       = you@gmail.com
-EMAIL_PASS       = your_gmail_app_password
-JWT_SECRET       = your_128_hex_secret
-FRONTEND_URL     = https://your-frontend.onrender.com
+MONGO_URI          = your_mongodb_atlas_connection_string
+DB_NAME            = passop
+VAULT_SECRET       = your_64_hex_secret
+API_KEY            = your_api_key
+EMAIL_USER         = you@gmail.com
+BREVO_SMTP_USER    = your_brevo_smtp_login
+BREVO_SMTP_PASS    = your_brevo_smtp_password
+JWT_SECRET         = your_128_hex_secret
+FRONTEND_URL       = https://your-frontend.onrender.com
 ```
 
 ### Frontend (Static Site)
