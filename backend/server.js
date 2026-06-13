@@ -7,20 +7,34 @@ const bodyparser = require('body-parser')
 const cors = require('cors')
 const bcrypt = require('bcryptjs')
 const crypto = require('crypto')
-const nodemailer = require('nodemailer')
+
 const jwt = require('jsonwebtoken')
 const rateLimit = require('express-rate-limit')
 
 const VAULT_KEY = Buffer.from(process.env.VAULT_SECRET, 'hex')
-const transporter = nodemailer.createTransport({
-    host: 'smtp-relay.brevo.com',
-    port: 465,
-    secure: true,
-    auth: {
-        user: process.env.BREVO_SMTP_USER,
-        pass: process.env.BREVO_SMTP_PASS
+async function sendEmail({ to, toName, subject, html }) {
+    const response = await fetch('https://api.brevo.com/v3/smtp/email', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'api-key': process.env.BREVO_API_KEY
+        },
+        body: JSON.stringify({
+            sender: { name: 'LockVerse', email: process.env.BREVO_SENDER_EMAIL },
+            to: [{ email: to, name: toName || to }],
+            subject: subject,
+            htmlContent: html
+        })
+    })
+    if (!response.ok) {
+        const err = await response.text()
+        throw new Error('Brevo API error: ' + err)
     }
-})
+    return response.json()
+}
+
+
+
 
 function encryptVaultPassword(plainText) {
     const iv = crypto.randomBytes(16)
@@ -251,8 +265,7 @@ app.post('/signup', async (req, res) => {
         const verifyUrl = `${process.env.FRONTEND_URL}/verify-email?token=${verifyToken}`
 
         try {
-            await transporter.sendMail({
-                from: `LockVerse <${process.env.BREVO_SMTP_USER}>`,
+            await sendEmail({
                 to: emailTrimmed,
                 subject: 'LockVerse – Verify your email address',
                 html: `
@@ -315,8 +328,7 @@ app.post('/contact', async (req, res) => {
         if (!name || !email || !subject || !message) {
             return res.status(400).json({ success: false, message: 'All fields are required' })
         }
-        await transporter.sendMail({
-            from: `LockVerse <${process.env.BREVO_SMTP_USER}>`,
+        await sendEmail({
             to: process.env.EMAIL_USER,
             replyTo: email,
             subject: subject,
@@ -369,8 +381,7 @@ app.post('/forgot-password/send-otp', otpLimiter, async (req, res) => {
 
             await setOtp(emailTrimmed, { otp, expiresAt, sentAt: Date.now(), verified: false })
 
-            await transporter.sendMail({
-                from: `LockVerse <${process.env.BREVO_SMTP_USER}>`,
+            await sendEmail({
                 to: emailTrimmed,
                 subject: 'LockVerse – Your Password Reset OTP',
                 html: `
