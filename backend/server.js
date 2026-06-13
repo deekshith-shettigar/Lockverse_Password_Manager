@@ -7,12 +7,19 @@ const bodyparser = require('body-parser')
 const cors = require('cors')
 const bcrypt = require('bcryptjs')
 const crypto = require('crypto')
-const { Resend } = require('resend')
+const nodemailer = require('nodemailer')
 const jwt = require('jsonwebtoken')
 const rateLimit = require('express-rate-limit')
 
 const VAULT_KEY = Buffer.from(process.env.VAULT_SECRET, 'hex')
-const resend = new Resend(process.env.RESEND_API_KEY)
+
+const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS
+    }
+})
 
 function encryptVaultPassword(plainText) {
     const iv = crypto.randomBytes(16)
@@ -243,8 +250,8 @@ app.post('/signup', async (req, res) => {
         const verifyUrl = `${process.env.FRONTEND_URL}/verify-email?token=${verifyToken}`
 
         try {
-            await resend.emails.send({
-                from: 'LockVerse <onboarding@resend.dev>',
+            await transporter.sendMail({
+                from: `LockVerse <${process.env.EMAIL_USER}>`,
                 to: emailTrimmed,
                 subject: 'LockVerse – Verify your email address',
                 html: `
@@ -307,8 +314,8 @@ app.post('/contact', async (req, res) => {
         if (!name || !email || !subject || !message) {
             return res.status(400).json({ success: false, message: 'All fields are required' })
         }
-        await resend.emails.send({
-            from: 'LockVerse <onboarding@resend.dev>',
+        await transporter.sendMail({
+            from: `LockVerse <${process.env.EMAIL_USER}>`,
             to: process.env.EMAIL_USER,
             replyTo: email,
             subject: subject,
@@ -361,8 +368,8 @@ app.post('/forgot-password/send-otp', otpLimiter, async (req, res) => {
 
             await setOtp(emailTrimmed, { otp, expiresAt, sentAt: Date.now(), verified: false })
 
-            await resend.emails.send({
-                from: 'LockVerse <onboarding@resend.dev>',
+            await transporter.sendMail({
+                from: `LockVerse <${process.env.EMAIL_USER}>`,
                 to: emailTrimmed,
                 subject: 'LockVerse – Your Password Reset OTP',
                 html: `
