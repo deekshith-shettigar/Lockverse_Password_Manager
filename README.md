@@ -7,7 +7,7 @@ LockVerse is a full-stack password management application that helps you securel
 ## 🌐 Live Demo
 
 - **Frontend:** https://lockverse-frontend.onrender.com
-- **Backend:** https://lockverse-password-manager.onrender.com
+- **Backend:** https://lockverse-backend.onrender.com
 
 ---
 
@@ -24,7 +24,7 @@ LockVerse is a full-stack password management application that helps you securel
 - ✏️ **Edit & Delete** — Full CRUD for saved passwords
 - 🎨 **Responsive Design** — Works on desktop, tablet, and mobile
 - 🌐 **Landing Page** — Professional landing page with Home, About, and Contact sections
-- 📬 **Contact Form** — Messages sent directly to owner's inbox via Brevo SMTP
+- 📬 **Contact Form** — Messages sent directly to owner's inbox via Brevo HTTP API
 - 🎯 **User-Scoped Data** — Each user sees only their own passwords, enforced server-side
 
 ---
@@ -60,7 +60,7 @@ LockVerse is a full-stack password management application that helps you securel
 - **bcryptjs** — User password hashing
 - **jsonwebtoken** — JWT auth
 - **crypto (AES-256-CBC)** — Vault password encryption
-- **Nodemailer + Brevo SMTP** — Transactional email (verification, OTP, contact form)
+- **Brevo HTTP API** — Transactional email (verification, OTP, contact form) — sends to any email
 - **express-rate-limit** — Brute-force protection
 
 ### Deployment
@@ -106,14 +106,15 @@ DB_NAME=your_database_name
 VAULT_SECRET=your_64_hex_character_secret_key
 API_KEY=your_secret_api_key
 EMAIL_USER=you@gmail.com
-BREVO_SMTP_USER=your_brevo_smtp_login
-BREVO_SMTP_PASS=your_brevo_smtp_password
+BREVO_API_KEY=your_brevo_api_key
+BREVO_SENDER_EMAIL=you@gmail.com
 JWT_SECRET=your_128_hex_character_jwt_secret
 FRONTEND_URL=http://localhost:5173
 ```
 
-> ⚠️ `BREVO_SMTP_USER` and `BREVO_SMTP_PASS` come from **Brevo → Transactional → Email → SMTP Settings**.
-> Sign up free at [brevo.com](https://brevo.com) to get them.
+> ⚠️ `BREVO_API_KEY` comes from **Brevo → Settings → SMTP & API → API Keys → Generate**.
+> `BREVO_SENDER_EMAIL` must be a **verified sender** in Brevo → Settings → Senders, domains, IPs.
+> Sign up free at [brevo.com](https://brevo.com) to get started.
 
 **`.env` (frontend root)**
 ```env
@@ -230,8 +231,8 @@ DB_NAME            = passop
 VAULT_SECRET       = your_64_hex_secret
 API_KEY            = your_api_key
 EMAIL_USER         = you@gmail.com
-BREVO_SMTP_USER    = your_brevo_smtp_login
-BREVO_SMTP_PASS    = your_brevo_smtp_password
+BREVO_API_KEY      = your_brevo_api_key
+BREVO_SENDER_EMAIL = you@gmail.com
 JWT_SECRET         = your_128_hex_secret
 FRONTEND_URL       = https://your-frontend.onrender.com
 ```
@@ -246,6 +247,8 @@ Set this environment variable in Render → your frontend service → **Environm
 ```
 VITE_BACKEND_URL = https://your-backend.onrender.com
 ```
+
+> 💡 **Tip:** To prevent Render's free tier from spinning down, set up a cron job at [cron-job.org](https://cron-job.org) to ping your backend URL every 10 minutes.
 
 ---
 
